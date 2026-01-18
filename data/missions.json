@@ -1,0 +1,17 @@
+[
+    { "id": 1, "title": "첫 도전", "description": "게임 10회 플레이", "type": "play_count", "target": 10, "reward": "🏅" },
+    { "id": 2, "title": "열정적인 플레이어", "description": "게임 50회 플레이", "type": "play_count", "target": 50, "reward": "🏅" },
+    { "id": 3, "title": "도전의 달인", "description": "게임 100회 플레이", "type": "play_count", "target": 100, "reward": "🏆" },
+    { "id": 4, "title": "불굴의 의지", "description": "게임 200회 플레이", "type": "play_count", "target": 200, "reward": "🏆" },
+    { "id": 5, "title": "전설의 플레이어", "description": "게임 500회 플레이", "type": "play_count", "target": 500, "reward": "👑" },
+    { "id": 6, "title": "완벽한 시작", "description": "오차 0.01초 이내 1회 달성", "type": "perfect_timing", "target": 1, "reward": "⭐" },
+    { "id": 7, "title": "타이밍의 신", "description": "오차 0.01초 이내 10회 달성", "type": "perfect_timing", "target": 10, "reward": "⭐" },
+    { "id": 8, "title": "완벽주의자", "description": "오차 0.01초 이내 50회 달성", "type": "perfect_timing", "target": 50, "reward": "💎" },
+    { "id": 9, "title": "3연속 성공", "description": "연속으로 3회 성공", "type": "combo", "target": 3, "reward": "🔥" },
+    { "id": 10, "title": "5연속 성공", "description": "연속으로 5회 성공", "type": "combo", "target": 5, "reward": "🔥" },
+    { "id": 11, "title": "10연속 성공", "description": "연속으로 10회 성공", "type": "combo", "target": 10, "reward": "💥" },
+    { "id": 12, "title": "20연속 성공", "description": "연속으로 20회 성공", "type": "combo", "target": 20, "reward": "💥" },
+    { "id": 13, "title": "첫 걸음", "description": "스테이지 10 클리어", "type": "stage_clear", "target": 10, "reward": "🎯" },
+    { "id": 14, "title": "중반 돌파", "description": "스테이지 25 클리어", "type": "stage_clear", "target": 25, "reward": "🎯" },
+    { "id": 15, "title": "마스터", "description": "전체 스테이지 클리어", "type": "stage_clear", "target": 51, "reward": "👑" }
+]
