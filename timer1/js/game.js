@@ -349,7 +349,7 @@ function updateGameUI() {
     stageDesc.textContent = desc;
 
     const timerText = document.getElementById('timerText');
-    timerText.textContent = '0.00';
+    timerText.textContent = '0.000';
     timerText.classList.remove('hidden');
 
     const progressBar = document.getElementById('progressBar');
@@ -369,7 +369,7 @@ function updateTimer() {
         timerText.textContent = '??.??';
         timerText.classList.add('hidden');
     } else {
-        timerText.textContent = gameState.currentTime.toFixed(2);
+        timerText.textContent = gameState.currentTime.toFixed(3);
         timerText.classList.remove('hidden');
     }
 
@@ -417,7 +417,7 @@ function recordMultiTarget() {
     if (targetEl) {
         targetEl.classList.add(success ? 'success' : 'fail');
         targetEl.querySelector('span:last-child').textContent =
-            `${gameState.currentTime.toFixed(2)}초 (${success ? '성공' : '실패'})`;
+            `${gameState.currentTime.toFixed(3)}초 (${success ? '성공' : '실패'})`;
     }
 
     gameState.currentMultiIndex++;
@@ -440,7 +440,7 @@ function showResult() {
     if (currentStage.multi) {
         success = gameState.multiResults.every(r => r.success);
         detail = gameState.multiResults.map(r =>
-            `${r.target}초: ${r.actual.toFixed(2)}초 (오차 ${r.diff.toFixed(2)}초) - ${r.success ? '✅' : '❌'}`
+            `${r.target}초: ${r.actual.toFixed(3)}초 (오차 ${r.diff.toFixed(3)}초) - ${r.success ? '✅' : '❌'}`
         ).join('<br>');
         diff = success ? 0 : 999;
     } else {
@@ -450,8 +450,8 @@ function showResult() {
             diff <= currentStage.margin;
 
         detail = `목표: ${gameState.actualTarget}초<br>
-                 기록: ${gameState.currentTime.toFixed(2)}초<br>
-                 오차: ${diff.toFixed(2)}초`;
+                 기록: ${gameState.currentTime.toFixed(3)}초<br>
+                 오차: ${diff.toFixed(3)}초`;
     }
 
     updateStats(success, diff);

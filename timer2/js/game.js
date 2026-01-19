@@ -17,7 +17,7 @@ let gameState = {
 async function loadData() {
     try {
         const [stagesResponse, missionsResponse] = await Promise.all([
-            fetch('data/stages.json'),
+            fetch('data/stages-grouped.json'),
             fetch('data/missions.json')
         ]);
 
@@ -244,71 +244,133 @@ function showScreen(screenId) {
 
 // 메인 화면 초기화
 function initMainScreen() {
-    const grid = document.getElementById('stageGrid');
+    const container = document.getElementById('stageGrid');
     const progress = getProgress();
     const stats = getStats();
 
-    grid.innerHTML = '';
-    stages.forEach((stage, index) => {
-        const item = document.createElement('li');
-        item.className = 'stage-item';
+    container.innerHTML = '';
 
-        // 버튼과 상태를 감싸는 컨테이너
-        const btnContainer = document.createElement('div');
-        btnContainer.className = 'stage-btn-container';
+    // 그룹별로 스테이지 분류
+    const groups = {};
+    stages.forEach(stage => {
+        if (!groups[stage.group]) {
+            groups[stage.group] = [];
+        }
+        groups[stage.group].push(stage);
+    });
 
-        const btn = document.createElement('button');
-        btn.className = 'stage-btn';
-        btn.textContent = stage.exam ? (stage.examName || `시험`) : `${stage.id}`;
+    // 각 그룹 렌더링
+    Object.keys(groups).sort((a, b) => a - b).forEach(groupNum => {
+        const groupStages = groups[groupNum];
+        const normalStages = groupStages.filter(s => !s.exam);
+        const examStage = groupStages.find(s => s.exam);
 
-        if (stage.exam) btn.classList.add('exam');
-        if (isStageCleared(stage.id)) btn.classList.add('cleared');
-        if (!canPlayStage(stage.id)) {
-            btn.classList.add('locked');
-            btn.disabled = true;
+        // 그룹 컨테이너
+        const groupContainer = document.createElement('div');
+        groupContainer.className = 'stage-group';
+
+        // 그룹 헤더
+        const groupHeader = document.createElement('div');
+        groupHeader.className = 'group-header';
+        groupHeader.textContent = `구간 ${groupNum}`;
+        groupContainer.appendChild(groupHeader);
+
+        // 3x3 그리드 (일반 스테이지)
+        const gridList = document.createElement('ul');
+        gridList.className = 'stage-grid';
+
+        normalStages.forEach(stage => {
+            const item = document.createElement('li');
+            item.className = 'stage-item';
+
+            const btnContainer = document.createElement('div');
+            btnContainer.className = 'stage-btn-container';
+
+            const btn = document.createElement('button');
+            btn.className = 'stage-btn';
+            btn.textContent = stage.id;
+
+            if (isStageCleared(stage.id)) btn.classList.add('cleared');
+            if (!canPlayStage(stage.id)) {
+                btn.classList.add('locked');
+                btn.disabled = true;
+            }
+
+            btn.onclick = () => startStage(stage.id);
+
+            const statusText = document.createElement('span');
+            statusText.className = 'stage-status';
+
+            if (isStageCleared(stage.id)) {
+                statusText.textContent = '완료';
+            } else if (!canPlayStage(stage.id)) {
+                statusText.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="2"/>
+                        <path d="M8 11V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="16" r="1" fill="currentColor"/>
+                    </svg>
+                `;
+            } else {
+                statusText.textContent = '도전';
+            }
+
+            const infoContainer = document.createElement('div');
+            infoContainer.className = 'stage-info';
+
+            let targetText = '';
+            if (stage.target === 'random') {
+                targetText = `${stage.targetRange[0]}~${stage.targetRange[1]}초`;
+            } else {
+                targetText = `${stage.target}초`;
+            }
+            infoContainer.textContent = targetText;
+
+            btnContainer.appendChild(btn);
+            btnContainer.appendChild(statusText);
+
+            item.appendChild(btnContainer);
+            item.appendChild(infoContainer);
+            gridList.appendChild(item);
+        });
+
+        groupContainer.appendChild(gridList);
+
+        // 시험 버튼
+        if (examStage) {
+            const examContainer = document.createElement('div');
+            examContainer.className = 'exam-container';
+
+            const examBtn = document.createElement('button');
+            examBtn.className = 'stage-btn exam';
+            examBtn.textContent = examStage.examName || `시험 ${groupNum}`;
+
+            if (isStageCleared(examStage.id)) examBtn.classList.add('cleared');
+            if (!canPlayStage(examStage.id)) {
+                examBtn.classList.add('locked');
+                examBtn.disabled = true;
+            }
+
+            examBtn.onclick = () => startStage(examStage.id);
+
+            const examStatus = document.createElement('span');
+            examStatus.className = 'exam-status';
+
+            if (isStageCleared(examStage.id)) {
+                examStatus.textContent = '완료';
+            } else if (canPlayStage(examStage.id)) {
+                examStatus.textContent = '도전 가능';
+            } else {
+                const sectionProgress = getSectionProgress(examStage.id);
+                examStatus.textContent = `${sectionProgress.cleared}/${sectionProgress.total} 클리어`;
+            }
+
+            examContainer.appendChild(examBtn);
+            examContainer.appendChild(examStatus);
+            groupContainer.appendChild(examContainer);
         }
 
-        btn.onclick = () => startStage(stage.id);
-
-        const statusText = document.createElement('span');
-        statusText.className = 'stage-status';
-
-        // 시험 스테이지인 경우 구간 진행도 표시
-        if (stage.exam && !isStageCleared(stage.id)) {
-            const sectionProgress = getSectionProgress(stage.id);
-            statusText.textContent = `${sectionProgress.cleared}/${sectionProgress.total}`;
-        } else if (isStageCleared(stage.id)) {
-            statusText.textContent = '완료';
-        } else if (!canPlayStage(stage.id)) {
-            statusText.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="2"/>
-                    <path d="M8 11V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="12" cy="16" r="1" fill="currentColor"/>
-                </svg>
-            `;
-        } else {
-            statusText.textContent = '도전';
-        }
-
-        btnContainer.appendChild(btn);
-        btnContainer.appendChild(statusText);
-
-        // 스테이지 정보
-        const infoContainer = document.createElement('div');
-        infoContainer.className = 'stage-info';
-
-        let targetText = '';
-        if (stage.target === 'random') {
-            targetText = `${stage.targetRange[0]}~${stage.targetRange[1]}초`;
-        } else {
-            targetText = `${stage.target}초`;
-        }
-        infoContainer.textContent = targetText;
-
-        item.appendChild(btnContainer);
-        item.appendChild(infoContainer);
-        grid.appendChild(item);
+        container.appendChild(groupContainer);
     });
 
     document.getElementById('progress').textContent = progress.cleared.length;
@@ -408,7 +470,7 @@ function updateGameUI() {
     stageDesc.textContent = desc;
 
     const timerText = document.getElementById('timerText');
-    timerText.textContent = '0.00';
+    timerText.textContent = '0.000';
     timerText.classList.remove('hidden');
 
     const progressBar = document.getElementById('progressBar');
@@ -428,7 +490,7 @@ function updateTimer() {
         timerText.textContent = '??.??';
         timerText.classList.add('hidden');
     } else {
-        timerText.textContent = gameState.currentTime.toFixed(2);
+        timerText.textContent = gameState.currentTime.toFixed(3);
         timerText.classList.remove('hidden');
     }
 
@@ -476,7 +538,7 @@ function recordMultiTarget() {
     if (targetEl) {
         targetEl.classList.add(success ? 'success' : 'fail');
         targetEl.querySelector('span:last-child').textContent =
-            `${gameState.currentTime.toFixed(2)}초 (${success ? '성공' : '실패'})`;
+            `${gameState.currentTime.toFixed(3)}초 (${success ? '성공' : '실패'})`;
     }
 
     gameState.currentMultiIndex++;
@@ -499,7 +561,7 @@ function showResult() {
     if (currentStage.multi) {
         success = gameState.multiResults.every(r => r.success);
         detail = gameState.multiResults.map(r =>
-            `${r.target}초: ${r.actual.toFixed(2)}초 (오차 ${r.diff.toFixed(2)}초) - ${r.success ? '✅' : '❌'}`
+            `${r.target}초: ${r.actual.toFixed(3)}초 (오차 ${r.diff.toFixed(3)}초) - ${r.success ? '✅' : '❌'}`
         ).join('<br>');
         diff = success ? 0 : 999;
     } else {
@@ -509,8 +571,8 @@ function showResult() {
             diff <= currentStage.margin;
 
         detail = `목표: ${gameState.actualTarget}초<br>
-                 기록: ${gameState.currentTime.toFixed(2)}초<br>
-                 오차: ${diff.toFixed(2)}초`;
+                 기록: ${gameState.currentTime.toFixed(3)}초<br>
+                 오차: ${diff.toFixed(3)}초`;
     }
 
     updateStats(success, diff);
