@@ -48,10 +48,7 @@ function applySkin(skinId) {
 
     document.body.style.background = skin.colors.bg;
 
-    const progressBar = document.getElementById('progressBar');
-    if (progressBar) {
-        progressBar.style.stroke = skin.colors.circle;
-    }
+    // 프로그레스 바는 무지개 그라데이션 사용 (CSS에서 설정)
 
     const progressBg = document.querySelector('.progress-bg');
     if (progressBg) {
@@ -206,6 +203,18 @@ function getSectionProgress(examId) {
     return { cleared: clearedCount, total: sectionStages.length };
 }
 
+// 그룹 완료 여부 확인 (시험까지 모두 클리어)
+function isGroupCompleted(groupNum) {
+    const groupStages = stages.filter(s => s.group === groupNum);
+    const examStage = groupStages.find(s => s.exam);
+
+    // 시험 스테이지가 클리어되었으면 그룹 완료
+    if (examStage && isStageCleared(examStage.id)) {
+        return true;
+    }
+    return false;
+}
+
 // 이전 시험을 클리어했는지 확인
 function isPreviousExamCleared(examId) {
     const examStages = stages.filter(s => s.exam).map(s => s.id);
@@ -273,6 +282,11 @@ function initMainScreen() {
         // 그룹 컨테이너
         const groupContainer = document.createElement('div');
         groupContainer.className = 'stage-group';
+
+        // 그룹 완료 시 특별 스타일 적용
+        if (isGroupCompleted(parseInt(groupNum))) {
+            groupContainer.classList.add('group-completed');
+        }
 
         // 그룹 헤더
         const groupHeader = document.createElement('div');
@@ -481,6 +495,7 @@ function updateGameUI() {
     const progressBar = document.getElementById('progressBar');
     progressBar.style.strokeDasharray = CIRCLE_CIRCUMFERENCE;
     progressBar.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE;
+    progressBar.style.opacity = 0.3; // 초기 투명도 설정
 }
 
 // 타이머 업데이트
@@ -506,6 +521,10 @@ function updateTimer() {
     const progress = Math.min(gameState.currentTime / gameState.actualTarget, 1);
     const offset = CIRCLE_CIRCUMFERENCE - (progress * CIRCLE_CIRCUMFERENCE);
     progressBar.style.strokeDashoffset = offset;
+
+    // 프로그레스 바 투명도 그라데이션 효과 (연한색 → 진한색)
+    const opacity = 0.3 + (progress * 0.7); // 0.3 ~ 1.0
+    progressBar.style.opacity = opacity;
 
     if (gameState.currentTime > gameState.actualTarget + 5) {
         stopTimer();

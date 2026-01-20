@@ -59,6 +59,25 @@ body {
     background: rgba(255, 255, 255, 0.05);
     padding: 20px;
     border-radius: 16px;
+    transition: all 0.5s ease;
+    border: 2px solid transparent;
+}
+
+/* 그룹 완료 스타일 */
+.stage-group.group-completed {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 165, 0, 0.15) 100%);
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3), inset 0 0 30px rgba(255, 215, 0, 0.1);
+}
+
+.stage-group.group-completed .group-header {
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.stage-group.group-completed .group-header::after {
+    content: ' ✓';
+    color: #ffd700;
 }
 
 .group-header {
@@ -473,7 +492,7 @@ body {
 
 .progress-bar {
     fill: none;
-    stroke: #ffffff;
+    stroke: url(#rainbowGradient);
     stroke-width: 12;
     stroke-linecap: round;
     transition: stroke-dashoffset 0.1s linear, opacity 0.5s ease;
