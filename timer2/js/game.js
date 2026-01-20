@@ -307,7 +307,15 @@ function initMainScreen() {
 
             const btn = document.createElement('button');
             btn.className = 'stage-btn';
-            btn.textContent = stage.id;
+
+            // 목표 시간 표시
+            let btnText = '';
+            if (stage.target === 'random') {
+                btnText = `${stage.targetRange[0]}-${stage.targetRange[1]}`;
+            } else {
+                btnText = `${stage.target}`;
+            }
+            btn.textContent = btnText;
 
             if (isStageCleared(stage.id)) btn.classList.add('cleared');
             if (!canPlayStage(stage.id)) {
@@ -526,8 +534,12 @@ function updateTimer() {
     progressBar.style.strokeDashoffset = offset;
 
     // 프로그레스 바 투명도 그라데이션 효과 (연한색 → 진한색)
-    const opacity = 0.3 + (progress * 0.7); // 0.3 ~ 1.0
-    progressBar.style.opacity = opacity;
+    if (!isHidden) {
+        const opacity = 0.3 + (progress * 0.7); // 0.3 ~ 1.0
+        progressBar.style.opacity = opacity;
+    } else {
+        progressBar.style.opacity = 0;
+    }
 
     if (gameState.currentTime > gameState.actualTarget + 5) {
         stopTimer();
@@ -555,7 +567,7 @@ function recordMultiTarget() {
     const targetTime = gameState.multiTargets[gameState.currentMultiIndex];
     const diff = Math.abs(gameState.currentTime - targetTime);
     const success = currentStage.margin === 0 ?
-        diff < 0.01 :
+        diff === 0 :
         diff <= currentStage.margin;
 
     gameState.multiResults.push({
@@ -598,7 +610,7 @@ function showResult() {
     } else {
         diff = Math.abs(gameState.currentTime - gameState.actualTarget);
         success = currentStage.margin === 0 ?
-            diff < 0.01 :
+            diff === 0 :
             diff <= currentStage.margin;
 
         detail = `목표: ${gameState.actualTarget}초<br>
