@@ -217,6 +217,10 @@ function isPreviousExamCleared(examId) {
 }
 
 function canPlayStage(stageId) {
+    // 테스트 모드: 모든 스테이지 열림
+    return true;
+
+    /* 원래 로직 (테스트 후 복원)
     const stage = stages.find(s => s.id === stageId);
     if (!stage) return false;
 
@@ -234,6 +238,7 @@ function canPlayStage(stageId) {
     // 이전 시험을 클리어했으면 플레이 가능
     const examId = getExamForStage(stageId);
     return isPreviousExamCleared(examId);
+    */
 }
 
 // 화면 전환
