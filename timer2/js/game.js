@@ -487,7 +487,7 @@ function updateGameUI() {
 function updateTimer() {
     if (!gameState.running) return;
 
-    gameState.currentTime = (performance.now() - gameState.startTime) / 1000;
+    gameState.currentTime = Math.floor((performance.now() - gameState.startTime)) / 1000;
     const timerText = document.getElementById('timerText');
     const progressBar = document.getElementById('progressBar');
 

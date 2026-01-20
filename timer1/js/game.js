@@ -361,16 +361,20 @@ function updateGameUI() {
 function updateTimer() {
     if (!gameState.running) return;
 
-    gameState.currentTime = (performance.now() - gameState.startTime) / 1000;
+    gameState.currentTime = Math.floor((performance.now() - gameState.startTime)) / 1000;
     const timerText = document.getElementById('timerText');
     const progressBar = document.getElementById('progressBar');
 
-    if (currentStage.hideAfter && gameState.currentTime > currentStage.hideAfter) {
-        timerText.textContent = '??.??';
+    const isHidden = currentStage.hideAfter && gameState.currentTime > currentStage.hideAfter;
+
+    timerText.textContent = gameState.currentTime.toFixed(3);
+
+    if (isHidden) {
         timerText.classList.add('hidden');
+        progressBar.classList.add('hidden');
     } else {
-        timerText.textContent = gameState.currentTime.toFixed(3);
         timerText.classList.remove('hidden');
+        progressBar.classList.remove('hidden');
     }
 
     const progress = Math.min(gameState.currentTime / gameState.actualTarget, 1);
