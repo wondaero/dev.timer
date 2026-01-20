@@ -161,6 +161,52 @@ body {
     margin-bottom: 12px;
 }
 
+.stage-progress-ring {
+    position: absolute;
+    width: 95%;
+    height: 95%;
+    top: 2.5%;
+    left: 2.5%;
+    transform: rotate(-90deg);
+}
+
+.stage-ring-bg {
+    fill: none;
+    stroke: rgba(139, 69, 19, 0.2);
+    stroke-width: 3;
+}
+
+.stage-ring-progress {
+    fill: none;
+    stroke: #8B4513;
+    stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.3s ease;
+}
+
+/* 클리어된 스테이지 링 색상 */
+.stage-btn.cleared .stage-ring-bg {
+    stroke: rgba(255, 255, 255, 0.3);
+}
+
+.stage-btn.cleared .stage-ring-progress {
+    stroke: white;
+}
+
+/* 잠긴 스테이지 링 색상 */
+.stage-btn.locked .stage-ring-bg {
+    stroke: rgba(51, 51, 51, 0.3);
+}
+
+.stage-btn.locked .stage-ring-progress {
+    stroke: #333;
+}
+
+.stage-number {
+    position: relative;
+    z-index: 1;
+}
+
 
 .stage-btn:active {
     transform: translateY(4px);

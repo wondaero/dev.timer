@@ -310,12 +310,29 @@ function initMainScreen() {
 
             // 목표 시간 표시
             let btnText = '';
+            let targetValue = 0;
             if (stage.target === 'random') {
                 btnText = `${stage.targetRange[0]}-${stage.targetRange[1]}`;
+                targetValue = (stage.targetRange[0] + stage.targetRange[1]) / 2;
             } else {
                 btnText = `${stage.target}`;
+                targetValue = stage.target;
             }
-            btn.textContent = btnText;
+
+            // SVG 원형 프로그레스 링 추가
+            const maxTarget = 20;
+            const progress = Math.min(targetValue / maxTarget, 1);
+            const circumference = 2 * Math.PI * 22; // r=22
+            const offset = circumference - (progress * circumference);
+
+            btn.innerHTML = `
+                <svg class="stage-progress-ring" viewBox="0 0 50 50">
+                    <circle class="stage-ring-bg" cx="25" cy="25" r="22"></circle>
+                    <circle class="stage-ring-progress" cx="25" cy="25" r="22"
+                            style="stroke-dasharray: ${circumference}; stroke-dashoffset: ${offset};"></circle>
+                </svg>
+                <span class="stage-number">${btnText}</span>
+            `;
 
             if (isStageCleared(stage.id)) btn.classList.add('cleared');
             if (!canPlayStage(stage.id)) {
