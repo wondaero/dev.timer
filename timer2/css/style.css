@@ -6,7 +6,7 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     display: flex;
@@ -460,6 +460,12 @@ body {
     opacity: 0.9;
 }
 
+.highlight-time {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #ffd700;
+}
+
 /* 타이머 디스플레이 */
 .timer-display {
     background: rgba(0,0,0,0.3);
@@ -503,11 +509,20 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 2.8em;
     font-weight: bold;
-    font-family: 'Courier New', monospace;
+    font-family: 'Pretendard', sans-serif;
+    font-variant-numeric: tabular-nums;
     color: white;
     transition: opacity 0.5s ease;
+}
+
+.timer-text .integer {
+    font-size: 3.2em;
+}
+
+.timer-text .decimal {
+    font-size: 2em;
+    opacity: 0.8;
 }
 
 .timer-text.hidden {

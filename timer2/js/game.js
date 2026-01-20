@@ -469,9 +469,9 @@ function updateGameUI() {
         stageName.textContent = `스테이지 ${currentStage.id}`;
     }
 
-    let desc = '';
+    let descHtml = '';
     if (currentStage.multi) {
-        desc = `${gameState.actualTarget}초 동안 ${gameState.multiTargets.join(', ')}초에 정확히 클릭하세요!`;
+        descHtml = `<span class="highlight-time">${gameState.actualTarget}초</span> 동안 ${gameState.multiTargets.join(', ')}초에 정확히 클릭하세요!`;
         multiTargets.style.display = 'block';
         multiTargets.innerHTML = gameState.multiTargets.map((t, i) => `
             <div class="target-item" id="target-${i}">
@@ -480,16 +480,17 @@ function updateGameUI() {
             </div>
         `).join('');
     } else {
-        desc = `${currentStage.target === 'random' ? gameState.actualTarget : currentStage.target}초를 정확히 맞춰보세요!`;
-        if (currentStage.margin > 0) desc += ` (오차범위 ±${currentStage.margin}초)`;
-        if (currentStage.hideAfter) desc += ` (${currentStage.hideAfter}초 후 타이머 숨김)`;
+        const targetTime = currentStage.target === 'random' ? gameState.actualTarget : currentStage.target;
+        descHtml = `<span class="highlight-time">${targetTime}초</span>를 정확히 맞춰보세요!`;
+        if (currentStage.margin > 0) descHtml += ` (오차범위 ±${currentStage.margin}초)`;
+        if (currentStage.hideAfter) descHtml += ` (${currentStage.hideAfter}초 후 타이머 숨김)`;
         multiTargets.style.display = 'none';
     }
 
-    stageDesc.textContent = desc;
+    stageDesc.innerHTML = descHtml;
 
     const timerText = document.getElementById('timerText');
-    timerText.textContent = '0.000';
+    timerText.innerHTML = '<span class="integer">0</span><span class="decimal">.000</span>';
     timerText.classList.remove('hidden');
 
     const progressBar = document.getElementById('progressBar');
@@ -508,7 +509,9 @@ function updateTimer() {
 
     const isHidden = currentStage.hideAfter && gameState.currentTime > currentStage.hideAfter;
 
-    timerText.textContent = gameState.currentTime.toFixed(3);
+    const timeStr = gameState.currentTime.toFixed(3);
+    const [intPart, decPart] = timeStr.split('.');
+    timerText.innerHTML = `<span class="integer">${intPart}</span><span class="decimal">.${decPart}</span>`;
 
     if (isHidden) {
         timerText.classList.add('hidden');
