@@ -363,12 +363,12 @@ function initMainScreen() {
             infoContainer.className = 'stage-info';
 
             let targetText = '';
-            if (stage.target === 'random') {
-                targetText = `${stage.targetRange[0]}~${stage.targetRange[1]}초`;
-            } else {
-                targetText = `${stage.target}초`;
-            }
-            infoContainer.textContent = targetText;
+            // if (stage.target === 'random') {
+            //     targetText = `${stage.targetRange[0]}~${stage.targetRange[1]}초`;
+            // } else {
+            //     targetText = `${stage.target}초`;
+            // }
+            // infoContainer.textContent = targetText;
 
             btnContainer.appendChild(btn);
             btnContainer.appendChild(statusText);
