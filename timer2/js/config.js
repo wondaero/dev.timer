@@ -1,6 +1,5 @@
 // 게임 설정 및 상수
-const STORAGE_KEY = 'timerGameProgress';
-const STATS_KEY = 'timerGameStats';
+const STORAGE_KEY = 'timerGameData';
 const SKIN_KEY = 'timerGameSkin';
 const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 90; // r=90
 

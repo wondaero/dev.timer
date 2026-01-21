@@ -82,10 +82,11 @@ function getUnlockedSkins(medal) {
     });
 }
 
-// 통계 관리
-function getStats() {
-    const saved = localStorage.getItem(STATS_KEY);
+// 게임 데이터 관리 (통합)
+function getGameData() {
+    const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : {
+        stages: {},
         totalPlays: 0,
         perfectCount: 0,
         currentCombo: 0,
@@ -94,61 +95,89 @@ function getStats() {
     };
 }
 
-function saveStats(stats) {
-    localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+function saveGameData(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-function updateStats(success, diff) {
-    const stats = getStats();
+function updateStats(stageId, success, diff) {
+    const data = getGameData();
 
-    stats.totalPlays++;
+    // 스테이지별 상세 기록
+    if (!data.stages[stageId]) {
+        data.stages[stageId] = {
+            attempts: 0,
+            successes: 0,
+            failures: 0,
+            bestDiff: null
+        };
+    }
+
+    const stageData = data.stages[stageId];
+    stageData.attempts++;
 
     if (success) {
-        stats.currentCombo++;
-        if (stats.currentCombo > stats.maxCombo) {
-            stats.maxCombo = stats.currentCombo;
+        stageData.successes++;
+        const roundedDiff = Math.round(diff * 1000) / 1000;
+        if (stageData.bestDiff === null || roundedDiff < stageData.bestDiff) {
+            stageData.bestDiff = roundedDiff;
+        }
+    } else {
+        stageData.failures++;
+    }
+
+    // 전체 통계
+    data.totalPlays++;
+
+    if (success) {
+        data.currentCombo++;
+        if (data.currentCombo > data.maxCombo) {
+            data.maxCombo = data.currentCombo;
         }
 
         if (diff < 0.01) {
-            stats.perfectCount++;
+            data.perfectCount++;
         }
     } else {
-        stats.currentCombo = 0;
+        data.currentCombo = 0;
     }
 
-    saveStats(stats);
-    checkMissions(stats);
+    saveGameData(data);
+    checkMissions(data);
 }
 
-function checkMissions(stats) {
-    const progress = getProgress();
+function checkMissions(data) {
+    const clearedCount = getClearedCount(data);
 
     missions.forEach(mission => {
-        if (stats.completedMissions.includes(mission.id)) return;
+        if (data.completedMissions.includes(mission.id)) return;
 
         let completed = false;
 
         switch(mission.type) {
             case 'play_count':
-                completed = stats.totalPlays >= mission.target;
+                completed = data.totalPlays >= mission.target;
                 break;
             case 'perfect_timing':
-                completed = stats.perfectCount >= mission.target;
+                completed = data.perfectCount >= mission.target;
                 break;
             case 'combo':
-                completed = stats.maxCombo >= mission.target;
+                completed = data.maxCombo >= mission.target;
                 break;
             case 'stage_clear':
-                completed = progress.cleared.length >= mission.target;
+                completed = clearedCount >= mission.target;
                 break;
         }
 
-        if (completed && !stats.completedMissions.includes(mission.id)) {
-            stats.completedMissions.push(mission.id);
-            saveStats(stats);
+        if (completed && !data.completedMissions.includes(mission.id)) {
+            data.completedMissions.push(mission.id);
+            saveGameData(data);
             showMissionComplete(mission);
         }
     });
+}
+
+function getClearedCount(data) {
+    return Object.values(data.stages).filter(s => s.successes > 0).length;
 }
 
 function showMissionComplete(mission) {
@@ -156,22 +185,15 @@ function showMissionComplete(mission) {
     setTimeout(() => alert(msg), 100);
 }
 
-// 진행 상황 관리
-function getProgress() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : { cleared: [] };
-}
-
-function saveProgress(stageId) {
-    const progress = getProgress();
-    if (!progress.cleared.includes(stageId)) {
-        progress.cleared.push(stageId);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
-    }
-}
-
+// 스테이지 클리어 여부
 function isStageCleared(stageId) {
-    return getProgress().cleared.includes(stageId);
+    const data = getGameData();
+    return data.stages[stageId]?.successes > 0;
+}
+
+function getStageData(stageId) {
+    const data = getGameData();
+    return data.stages[stageId] || null;
 }
 
 // 스테이지가 속한 구간의 시험 ID 반환
@@ -259,8 +281,7 @@ function showScreen(screenId) {
 // 메인 화면 초기화
 function initMainScreen() {
     const container = document.getElementById('stageGrid');
-    const progress = getProgress();
-    const stats = getStats();
+    const data = getGameData();
 
     container.innerHTML = '';
 
@@ -417,9 +438,9 @@ function initMainScreen() {
         container.appendChild(groupContainer);
     });
 
-    document.getElementById('progress').textContent = progress.cleared.length;
+    document.getElementById('progress').textContent = getClearedCount(data);
 
-    const completedCount = stats.completedMissions.length;
+    const completedCount = data.completedMissions.length;
     const currentMedal = getCurrentMedal(completedCount);
     const medalDisplay = document.getElementById('medalDisplay');
 
@@ -635,7 +656,7 @@ function showResult() {
                  오차: ${diff.toFixed(3)}초`;
     }
 
-    updateStats(success, diff);
+    updateStats(currentStage.id, success, diff);
 
     if (currentStage.repeatCount && !success) {
         detail += `<br><br>시험 실패! 다시 도전하세요.`;
@@ -653,7 +674,6 @@ function showResult() {
     resultDetail.innerHTML = detail;
 
     if (success) {
-        saveProgress(currentStage.id);
 
         // 다음 플레이 가능한 스테이지 찾기
         let hasNext = false;
@@ -678,8 +698,8 @@ function showResult() {
 
 // 스킨 화면
 function showSkinScreen() {
-    const stats = getStats();
-    const completedCount = stats.completedMissions.length;
+    const data = getGameData();
+    const completedCount = data.completedMissions.length;
     const currentMedal = getCurrentMedal(completedCount);
     const unlockedSkins = getUnlockedSkins(currentMedal);
     const currentSkinId = getCurrentSkin();
@@ -724,30 +744,29 @@ function selectSkin(skinId) {
 
 // 미션 화면
 function showMissionScreen() {
-    const stats = getStats();
-    const progress = getProgress();
+    const data = getGameData();
 
-    document.getElementById('totalPlays').textContent = stats.totalPlays;
-    document.getElementById('perfectCount').textContent = stats.perfectCount;
-    document.getElementById('maxCombo').textContent = stats.maxCombo;
+    document.getElementById('totalPlays').textContent = data.totalPlays;
+    document.getElementById('perfectCount').textContent = data.perfectCount;
+    document.getElementById('maxCombo').textContent = data.maxCombo;
 
     const missionList = document.getElementById('missionList');
     missionList.innerHTML = missions.map(mission => {
-        const completed = stats.completedMissions.includes(mission.id);
+        const completed = data.completedMissions.includes(mission.id);
         let current = 0;
 
         switch(mission.type) {
             case 'play_count':
-                current = stats.totalPlays;
+                current = data.totalPlays;
                 break;
             case 'perfect_timing':
-                current = stats.perfectCount;
+                current = data.perfectCount;
                 break;
             case 'combo':
-                current = stats.maxCombo;
+                current = data.maxCombo;
                 break;
             case 'stage_clear':
-                current = progress.cleared.length;
+                current = getClearedCount(data);
                 break;
         }
 
