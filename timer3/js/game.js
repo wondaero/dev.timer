@@ -70,6 +70,10 @@ function getCurrentMedal(completedCount) {
 }
 
 function getUnlockedSkins(medal) {
+    // 테스트 모드: 모든 스킨 잠금 해제
+    return skins;
+
+    /* 원래 로직
     if (!medal) return skins.filter(s => s.unlockMedal === null);
 
     const medalOrder = ['bronze', 'silver', 'gold', 'diamond'];
@@ -80,6 +84,7 @@ function getUnlockedSkins(medal) {
         const skinMedalIndex = medalOrder.indexOf(s.unlockMedal);
         return skinMedalIndex <= medalIndex;
     });
+    */
 }
 
 // 게임 데이터 관리 (통합)
@@ -456,9 +461,14 @@ function canPlayStage(stageId) {
 }
 
 // 화면 전환
-function showScreen(screenId) {
+function showScreen(screenId, addToHistory = true) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(screenId).classList.add('active');
+
+    // 히스토리에 추가
+    if (addToHistory) {
+        history.pushState({ screen: screenId }, '', `#${screenId}`);
+    }
 }
 
 // 메인 화면 초기화
@@ -1052,8 +1062,157 @@ function showMissionScreen() {
     showScreen('missionScreen');
 }
 
+// 인트로 배경 이미지 목록
+const INTRO_BACKGROUNDS = [
+    'intro_bg_midnight.png',
+    'intro_bg_sunset.png',
+    'intro_bg_day1.png',
+    'intro_bg_day2.png',
+    'intro_bg_evening.png',
+    'intro_bg_night.png'
+];
+
+// 이미지 프리로딩
+let imagesLoaded = false;
+const loadedImages = {};
+
+function preloadImages() {
+    return new Promise((resolve) => {
+        const loadingProgress = document.getElementById('loadingProgress');
+        let loaded = 0;
+        const total = INTRO_BACKGROUNDS.length;
+
+        INTRO_BACKGROUNDS.forEach((filename) => {
+            const img = new Image();
+            img.onload = img.onerror = () => {
+                loaded++;
+                loadedImages[filename] = img;
+                if (loadingProgress) {
+                    loadingProgress.textContent = `${loaded} / ${total}`;
+                }
+                if (loaded === total) {
+                    imagesLoaded = true;
+                    resolve();
+                }
+            };
+            img.src = `images/${filename}`;
+        });
+    });
+}
+
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    if (loadingScreen) {
+        loadingScreen.classList.add('hidden');
+    }
+}
+
+// 인트로 시계 애니메이션
+let introClockRunning = false;
+let introClockAnimationId = null;
+let lastClockUpdate = 0;
+let currentMinute = 0;
+let currentHour = 6;
+
+function getBackgroundForHour(hour) {
+    // 0-4시: 심야
+    if (hour >= 0 && hour < 5) return 'intro_bg_midnight.png';
+    // 5-6시: 일출 (노을 재활용)
+    if (hour >= 5 && hour < 7) return 'intro_bg_sunset.png';
+    // 7-11시: 오전
+    if (hour >= 7 && hour < 12) return 'intro_bg_day1.png';
+    // 12-16시: 오후
+    if (hour >= 12 && hour < 17) return 'intro_bg_day2.png';
+    // 17-18시: 노을
+    if (hour >= 17 && hour < 19) return 'intro_bg_sunset.png';
+    // 19-20시: 초저녁
+    if (hour >= 19 && hour < 21) return 'intro_bg_evening.png';
+    // 21-23시: 밤
+    return 'intro_bg_night.png';
+}
+
+function introClockLoop(timestamp) {
+    if (!introClockRunning) return;
+
+    const hourHand = document.getElementById('hourHand');
+    const minuteHand = document.getElementById('minuteHand');
+    const introBg = document.getElementById('introScreenBg');
+
+    if (!hourHand || !minuteHand || !introBg) {
+        introClockAnimationId = requestAnimationFrame(introClockLoop);
+        return;
+    }
+
+    // 100ms마다 업데이트
+    if (timestamp - lastClockUpdate >= 100) {
+        lastClockUpdate = timestamp;
+
+        // 분을 5분씩 증가
+        currentMinute += 5;
+        if (currentMinute >= 60) {
+            currentMinute = 0;
+            currentHour += 1;
+            if (currentHour >= 24) currentHour = 0;
+        }
+
+        // 시침 각도 (12시간 기준, 분도 반영)
+        const hourAngle = ((currentHour % 12) * 30 + (currentMinute / 60) * 30) - 90;
+        // 분침 각도
+        const minuteAngle = (currentMinute * 6) - 90;
+
+        // 시침/분침 회전
+        hourHand.setAttribute('transform', `rotate(${hourAngle} 100 100)`);
+        minuteHand.setAttribute('transform', `rotate(${minuteAngle} 100 100)`);
+
+        // 배경 이미지 적용
+        const bgImage = getBackgroundForHour(currentHour);
+        introBg.style.backgroundImage = `url("images/${bgImage}")`;
+    }
+
+    introClockAnimationId = requestAnimationFrame(introClockLoop);
+}
+
+function startIntroClock() {
+    if (introClockRunning) return;
+
+    // 초기 배경 설정
+    const introBg = document.getElementById('introScreenBg');
+    if (introBg) {
+        const initialBg = getBackgroundForHour(currentHour);
+        introBg.style.backgroundImage = `url("images/${initialBg}")`;
+    }
+
+    introClockRunning = true;
+    lastClockUpdate = 0;
+    introClockAnimationId = requestAnimationFrame(introClockLoop);
+}
+
+function stopIntroClock() {
+    introClockRunning = false;
+    if (introClockAnimationId) {
+        cancelAnimationFrame(introClockAnimationId);
+        introClockAnimationId = null;
+    }
+}
+
 // 이벤트 리스너
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // 이미지 프리로딩
+    await preloadImages();
+
+    // 로딩 화면 숨기기
+    hideLoadingScreen();
+
+    // 인트로 시계 시작
+    startIntroClock();
+
+    // 인트로 화면 시작 버튼
+    document.getElementById('startGameBtn').onclick = () => {
+        stopIntroClock();
+        initMainScreen();
+        showScreen('mainScreen');
+    };
+
     // 타이머 시작
     document.getElementById('startBtn').onclick = () => {
         gameState.running = true;
@@ -1119,6 +1278,24 @@ document.addEventListener('DOMContentLoaded', () => {
         initMainScreen();
         showScreen('mainScreen');
     };
+
+    // 브라우저 뒤로가기/앞으로가기 처리
+    window.addEventListener('popstate', (event) => {
+        if (event.state && event.state.screen) {
+            showScreen(event.state.screen, false);
+
+            // 메인 화면으로 돌아갈 때 데이터 새로고침
+            if (event.state.screen === 'mainScreen') {
+                initMainScreen();
+            }
+        } else {
+            // 히스토리가 없으면 인트로 화면으로
+            showScreen('introScreen', false);
+        }
+    });
+
+    // 초기 히스토리 상태 설정
+    history.replaceState({ screen: 'introScreen' }, '', '#introScreen');
 
     // 데이터 로드 및 초기화
     loadData();

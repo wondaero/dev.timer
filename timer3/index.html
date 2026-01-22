@@ -8,9 +8,39 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <!-- 로딩 화면 -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">로딩 중...</p>
+            <p class="loading-progress" id="loadingProgress">0 / 6</p>
+        </div>
+    </div>
+
     <div class="container">
+        <!-- 인트로 화면 -->
+        <div id="introScreen" class="screen active">
+            <div class="intro-screen" id="introScreenBg">
+                <div class="intro-clock-container">
+                    <svg class="intro-clock" viewBox="0 0 200 200">
+                        <!-- 시계 외곽 -->
+                        <circle cx="100" cy="100" r="90" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="4"/>
+                        <!-- 시침 -->
+                        <line id="hourHand" x1="100" y1="100" x2="100" y2="60" stroke="rgba(255,255,255,0.9)" stroke-width="6" stroke-linecap="round"/>
+                        <!-- 분침 -->
+                        <line id="minuteHand" x1="100" y1="100" x2="100" y2="40" stroke="rgba(255,255,255,0.8)" stroke-width="4" stroke-linecap="round"/>
+                        <!-- 중앙점 -->
+                        <circle cx="100" cy="100" r="8" fill="rgba(255,255,255,0.9)"/>
+                    </svg>
+                </div>
+                <h2 class="intro-subtitle">타이머 게임</h2>
+                <p class="intro-description">정확한 타이밍으로<br>목표 시간을 맞춰보세요</p>
+                <button id="startGameBtn" class="btn btn-primary btn-large">시작하기</button>
+            </div>
+        </div>
+
         <!-- 메인 화면 -->
-        <div id="mainScreen" class="screen active">
+        <div id="mainScreen" class="screen">
             <div class="main-screen">
                 <h1>⏱️ 타이머 게임</h1>
                 <div class="progress-info">

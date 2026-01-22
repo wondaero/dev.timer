@@ -10,10 +10,10 @@ const skins = [
         name: '기본',
         unlockMedal: null,
         colors: {
-            bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            circle: '#ffffff',
-            circleBg: 'rgba(255,255,255,0.2)',
-            timer: '#ffffff'
+            bg: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+            circle: '#2c3e50',
+            circleBg: 'rgba(44,62,80,0.2)',
+            timer: '#2c3e50'
         }
     },
     {
