@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>타이머 게임</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 메인 화면 -->
+        <div id="mainScreen" class="screen active">
+            <div class="main-screen">
+                <h1>⏱️ 타이머 게임</h1>
+                <div class="progress-info">
+                    <div>
+                        진행률: <span id="progress">0</span>/51 클리어<br>
+                        <span id="medalDisplay">메달 없음</span>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="skinBtn" class="mission-btn">🎨 스킨</button>
+                        <button id="missionBtn" class="mission-btn">📋 미션</button>
+                    </div>
+                </div>
+                <div class="stage-groups" id="stageGrid"></div>
+            </div>
+        </div>
+
+        <!-- 스킨 화면 -->
+        <div id="skinScreen" class="screen">
+            <div class="mission-screen">
+                <h2>🎨 스킨 선택</h2>
+                <div class="medal-info">
+                    <p>현재 메달: <span id="currentMedal">없음</span></p>
+                    <p style="font-size: 0.9em; opacity: 0.8;">미션을 완료하여 메달을 획득하고 새로운 스킨을 잠금 해제하세요!</p>
+                </div>
+                <div class="skin-grid" id="skinGrid"></div>
+                <div class="controls">
+                    <button id="skinBackBtn" class="btn">돌아가기</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 미션 화면 -->
+        <div id="missionScreen" class="screen">
+            <div class="mission-screen">
+                <h2>📋 미션</h2>
+                <div class="mission-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">총 플레이</div>
+                        <div class="stat-value" id="totalPlays">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">완벽 연속 최고</div>
+                        <div class="stat-value" id="perfectCount">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">오늘 플레이</div>
+                        <div class="stat-value" id="maxCombo">0</div>
+                    </div>
+                </div>
+                <div class="mission-list" id="missionList"></div>
+                <div class="controls">
+                    <button id="missionBackBtn" class="btn">돌아가기</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 게임 화면 -->
+        <div id="gameScreen" class="screen">
+            <div class="game-screen">
+                <div class="stage-info">
+                    <h2 id="stageName">스테이지 1</h2>
+                    <p id="stageDesc">3초를 정확히 맞춰보세요!</p>
+                </div>
+
+                <div class="timer-display">
+                    <div class="circular-progress">
+                        <svg viewBox="0 0 200 200">
+                            <defs>
+                                <linearGradient id="rainbowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#ff0000"/>
+                                    <stop offset="17%" style="stop-color:#ff8000"/>
+                                    <stop offset="33%" style="stop-color:#ffff00"/>
+                                    <stop offset="50%" style="stop-color:#00ff00"/>
+                                    <stop offset="67%" style="stop-color:#0080ff"/>
+                                    <stop offset="83%" style="stop-color:#4000ff"/>
+                                    <stop offset="100%" style="stop-color:#ff00ff"/>
+                                </linearGradient>
+                            </defs>
+                            <circle class="progress-bg" cx="100" cy="100" r="90"></circle>
+                            <circle id="progressBar" class="progress-bar" cx="100" cy="100" r="90"></circle>
+                        </svg>
+                        <div class="timer-text" id="timerText">0.00</div>
+                    </div>
+                </div>
+
+                <div id="multiTargets" class="multi-target-container" style="display:none;"></div>
+
+                <div class="controls">
+                    <button id="backBtn" class="btn">돌아가기</button>
+                    <button id="startBtn" class="btn btn-primary">시작</button>
+                    <button id="stopBtn" class="btn btn-stop" style="display:none;" disabled>정지</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 결과 화면 -->
+        <div id="resultScreen" class="screen">
+            <div class="result-screen">
+                <div id="resultCard" class="result-card">
+                    <div class="result-icon" id="resultIcon">✅</div>
+                    <h2 class="result-title" id="resultTitle">성공!</h2>
+                    <div class="result-detail" id="resultDetail"></div>
+                </div>
+                <div class="controls">
+                    <button id="retryBtn" class="btn btn-primary">다시하기</button>
+                    <button id="nextBtn" class="btn" style="display:none;">다음 스테이지</button>
+                    <button id="homeBtn" class="btn">메인으로</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>

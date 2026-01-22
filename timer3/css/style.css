@@ -1,0 +1,737 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: white;
+}
+
+.container {
+    max-width: 500px;
+    width: 100%;
+}
+
+.screen {
+    display: none;
+}
+
+.screen.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 메인 화면 */
+.main-screen {
+    text-align: center;
+}
+
+.main-screen h1 {
+    font-size: 3em;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+/* 그룹 컨테이너 */
+.stage-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    margin-top: 30px;
+    padding: 20px 10px;
+}
+
+.stage-group {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 16px;
+    transition: all 0.5s ease;
+    border: 2px solid transparent;
+}
+
+/* 그룹 완료 스타일 */
+.stage-group.group-completed {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 165, 0, 0.15) 100%);
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3), inset 0 0 30px rgba(255, 215, 0, 0.1);
+}
+
+.stage-group.group-completed .group-header {
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.stage-group.group-completed .group-header::after {
+    content: ' ✓';
+    color: #ffd700;
+}
+
+.group-header {
+    font-size: 1.5em;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 20px;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+/* 3x3 그리드 */
+.stage-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+    list-style: none;
+}
+
+.stage-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.stage-btn-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.stage-status {
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 시험 컨테이너 */
+.exam-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+.exam-status {
+    font-size: 1em;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: bold;
+}
+
+.stage-btn {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    border: none;
+    color: #8B4513;
+    padding: 20px;
+    border-radius: 12px;
+    width: 60px;
+    height: 60px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow:
+        0 3px 0 #CC8800,
+        0 8px 15px rgba(0,0,0,0.3);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    flex-shrink: 0;
+    margin-bottom: 4px;
+}
+
+.stage-progress-ring {
+    position: absolute;
+    width: 95%;
+    height: 95%;
+    top: 2.5%;
+    left: 2.5%;
+    transform: rotate(-90deg);
+}
+
+.stage-ring-bg {
+    fill: none;
+    stroke: rgba(139, 69, 19, 0.2);
+    stroke-width: 3;
+}
+
+.stage-ring-progress {
+    fill: none;
+    stroke: #8B4513;
+    stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.3s ease;
+}
+
+/* 클리어된 스테이지 링 색상 */
+.stage-btn.cleared .stage-ring-bg {
+    stroke: rgba(255, 255, 255, 0.3);
+}
+
+.stage-btn.cleared .stage-ring-progress {
+    stroke: white;
+}
+
+/* 잠긴 스테이지 링 색상 */
+.stage-btn.locked .stage-ring-bg {
+    stroke: rgba(51, 51, 51, 0.3);
+}
+
+.stage-btn.locked .stage-ring-progress {
+    stroke: #333;
+}
+
+.stage-number {
+    position: relative;
+    z-index: 1;
+}
+
+
+.stage-btn:active {
+    transform: translateY(4px);
+    box-shadow:
+        0 2px 0 #CC8800,
+        0 4px 10px rgba(0,0,0,0.3);
+}
+
+.stage-btn:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px) scale(1.05);
+}
+
+.stage-btn.exam {
+    background: linear-gradient(135deg, #FF69B4 0%, #FF1493 100%);
+    box-shadow:
+        0 3px 0 #CC0066,
+        0 8px 15px rgba(255,20,147,0.4);
+    color: white;
+}
+
+.stage-btn.locked {
+    background: linear-gradient(135deg, #999 0%, #666 100%);
+    box-shadow:
+        0 3px 0 #444,
+        0 8px 15px rgba(0,0,0,0.3);
+    opacity: 0.6;
+    cursor: not-allowed;
+    color: #333;
+}
+
+.stage-btn.cleared {
+    background: linear-gradient(135deg, #90EE90 0%, #32CD32 100%);
+    box-shadow:
+        0 3px 0 #228B22,
+        0 8px 15px rgba(50,205,50,0.4);
+    color: white;
+}
+
+.stage-btn.cleared::after {
+    content: '✓';
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: white;
+    color: #32CD32;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 0.8em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.progress-info {
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mission-btn {
+    background: rgba(255,255,255,0.2);
+    border: 2px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.mission-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+/* 미션 화면 */
+.mission-screen {
+    text-align: center;
+}
+
+.mission-screen h2 {
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+.mission-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.stat-item {
+    background: rgba(255,255,255,0.1);
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.stat-label {
+    font-size: 0.9em;
+    opacity: 0.8;
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    font-size: 2em;
+    font-weight: bold;
+    color: #ffd700;
+}
+
+.mission-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.mission-item {
+    background: rgba(255,255,255,0.1);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    text-align: left;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.mission-item.completed {
+    background: rgba(0,255,0,0.2);
+    border: 2px solid rgba(0,255,0,0.4);
+}
+
+.mission-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.mission-title {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.mission-reward {
+    font-size: 1.5em;
+}
+
+.mission-description {
+    opacity: 0.9;
+    margin-bottom: 10px;
+}
+
+.mission-progress {
+    background: rgba(0,0,0,0.3);
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.mission-progress-bar {
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.mission-progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+.mission-completed-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0,255,0,0.3);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+/* 스킨 화면 */
+.medal-info {
+    background: rgba(255,255,255,0.1);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+}
+
+.medal-info p {
+    margin: 5px 0;
+}
+
+.skin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.skin-card {
+    background: rgba(255,255,255,0.1);
+    padding: 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 3px solid transparent;
+    position: relative;
+}
+
+.skin-card:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateY(-5px);
+}
+
+.skin-card.active {
+    border-color: #ffd700;
+    box-shadow: 0 0 20px rgba(255,215,0,0.5);
+}
+
+.skin-card.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.skin-card.locked:hover {
+    transform: none;
+}
+
+.skin-preview {
+    width: 100%;
+    height: 100px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.skin-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.skin-unlock {
+    font-size: 0.8em;
+    opacity: 0.8;
+}
+
+.skin-locked-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.5em;
+}
+
+/* 게임 화면 */
+.game-screen {
+    text-align: center;
+}
+
+.stage-info {
+    font-size: 2em;
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    z-index: 2;
+    flex-shrink: 0;
+}
+
+.game-screen > .stage-info {
+    background: rgba(255,255,255,0.1);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    font-size: 1em;
+}
+
+.game-screen > .stage-info h2 {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+.game-screen > .stage-info p {
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+.highlight-time {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #ffd700;
+}
+
+/* 타이머 디스플레이 */
+.timer-display {
+    background: rgba(0,0,0,0.3);
+    padding: 40px;
+    border-radius: 20px;
+    margin: 30px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 원형 프로그레스 */
+.circular-progress {
+    position: relative;
+    width: 250px;
+    height: 250px;
+}
+
+.circular-progress svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.progress-bg {
+    fill: none;
+    stroke: rgba(255,255,255,0.2);
+    stroke-width: 12;
+}
+
+.progress-bar {
+    fill: none;
+    stroke: url(#rainbowGradient);
+    stroke-width: 12;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.1s linear, opacity 0.5s ease;
+}
+
+.timer-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+    font-family: 'Pretendard', sans-serif;
+    font-variant-numeric: tabular-nums;
+    color: white;
+    transition: opacity 0.5s ease;
+}
+
+.timer-text .integer {
+    font-size: 3.2em;
+}
+
+.timer-text .decimal {
+    font-size: 2em;
+    opacity: 0.8;
+}
+
+.timer-text.hidden {
+    opacity: 0;
+}
+
+.progress-bar.hidden {
+    opacity: 0;
+}
+
+/* 멀티 타겟 */
+.multi-target-container {
+    margin: 20px 0;
+}
+
+.target-item {
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.target-item.success {
+    background: rgba(0,255,0,0.2);
+    border: 2px solid rgba(0,255,0,0.4);
+}
+
+.target-item.fail {
+    background: rgba(255,0,0,0.2);
+    border: 2px solid rgba(255,0,0,0.4);
+}
+
+/* 버튼 */
+.controls {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    background: white;
+    color: #667eea;
+    border: none;
+    padding: 18px 40px;
+    border-radius: 12px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-stop {
+    background: #ff6b6b;
+    color: white;
+    font-size: 1.5em;
+    padding: 25px 60px;
+}
+
+.btn-stop:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* 결과 화면 */
+.result-screen {
+    text-align: center;
+}
+
+.result-card {
+    background: rgba(255,255,255,0.1);
+    padding: 40px;
+    border-radius: 20px;
+    margin: 30px 0;
+}
+
+.result-card.success {
+    background: rgba(0,255,0,0.2);
+    border: 2px solid rgba(0,255,0,0.4);
+}
+
+.result-card.fail {
+    background: rgba(255,0,0,0.2);
+    border: 2px solid rgba(255,0,0,0.4);
+}
+
+.result-icon {
+    font-size: 5em;
+    margin-bottom: 20px;
+}
+
+.result-title {
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+.result-detail {
+    font-size: 1.2em;
+    margin: 10px 0;
+    opacity: 0.9;
+    line-height: 1.6;
+}
+
+/* 미션 섹션 */
+.mission-section {
+    margin-bottom: 30px;
+}
+
+.mission-section-title {
+    font-size: 1.3em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-align: left;
+    padding-left: 10px;
+    border-left: 4px solid #ffd700;
+}
+
+/* 히든 미션 스타일 */
+.mission-item.hidden-mission {
+    background: rgba(128, 0, 128, 0.2);
+    border: 2px solid rgba(128, 0, 128, 0.4);
+}
+
+.mission-item.hidden-mission.completed {
+    background: rgba(255, 0, 255, 0.2);
+    border: 2px solid rgba(255, 0, 255, 0.4);
+}
+
+.mission-item.hidden-mission .mission-completed-badge {
+    background: rgba(255, 0, 255, 0.4);
+}
+
+.mission-item.hidden-mission.locked {
+    background: rgba(50, 50, 50, 0.3);
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+}
+
+.mission-item.hidden-mission.locked .mission-title,
+.mission-item.hidden-mission.locked .mission-reward {
+    opacity: 0.5;
+}
+
+.mission-item.hidden-placeholder {
+    background: rgba(50, 50, 50, 0.2);
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    text-align: center;
+    padding: 30px;
+}
+
+.mission-item.hidden-placeholder .mission-description {
+    opacity: 0.6;
+    font-style: italic;
+}

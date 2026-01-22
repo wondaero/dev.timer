@@ -1,0 +1,40 @@
+[
+    { "id": 1, "title": "100판 달성", "description": "총 100판 플레이", "type": "play_count", "target": 100, "reward": "🎮", "hidden": false },
+    { "id": 2, "title": "200판 달성", "description": "총 200판 플레이", "type": "play_count", "target": 200, "reward": "🎮", "hidden": false },
+    { "id": 3, "title": "300판 달성", "description": "총 300판 플레이", "type": "play_count", "target": 300, "reward": "🏅", "hidden": false },
+    { "id": 4, "title": "500판 달성", "description": "총 500판 플레이", "type": "play_count", "target": 500, "reward": "🏆", "hidden": false },
+    { "id": 5, "title": "1000판 달성", "description": "총 1000판 플레이", "type": "play_count", "target": 1000, "reward": "👑", "hidden": false },
+
+    { "id": 6, "title": "하루 100판", "description": "하루에 100판 플레이", "type": "daily_play", "target": 100, "reward": "📅", "hidden": false },
+    { "id": 7, "title": "하루 200판", "description": "하루에 200판 플레이", "type": "daily_play", "target": 200, "reward": "📅", "hidden": false },
+    { "id": 8, "title": "하루 300판", "description": "하루에 300판 플레이", "type": "daily_play", "target": 300, "reward": "🔥", "hidden": false },
+
+    { "id": 9, "title": "빙고 1줄", "description": "같은 오차로 빙고 1줄 완성", "type": "bingo", "target": 1, "reward": "⭐", "hidden": false },
+    { "id": 10, "title": "빙고 3줄", "description": "같은 오차로 빙고 3줄 완성", "type": "bingo", "target": 3, "reward": "⭐", "hidden": false },
+    { "id": 11, "title": "빙고 5줄", "description": "같은 오차로 빙고 5줄 완성", "type": "bingo", "target": 5, "reward": "🌟", "hidden": false },
+
+    { "id": 12, "title": "완벽 3연속", "description": "오차 0.01초 이하로 연속 3회 성공", "type": "perfect_combo", "target": 3, "reward": "💫", "hidden": false },
+    { "id": 13, "title": "완벽 5연속", "description": "오차 0.01초 이하로 연속 5회 성공", "type": "perfect_combo", "target": 5, "reward": "💫", "hidden": false },
+    { "id": 14, "title": "완벽 10연속", "description": "오차 0.01초 이하로 연속 10회 성공", "type": "perfect_combo", "target": 10, "reward": "💎", "hidden": false },
+
+    { "id": 15, "title": "첫 걸음", "description": "구간 1개 클리어", "type": "group_clear", "target": 1, "reward": "🎯", "hidden": false },
+    { "id": 16, "title": "중반 돌파", "description": "구간 5개 클리어", "type": "group_clear", "target": 5, "reward": "🎯", "hidden": false },
+    { "id": 17, "title": "후반 진입", "description": "구간 10개 클리어", "type": "group_clear", "target": 10, "reward": "🏆", "hidden": false },
+    { "id": 18, "title": "마스터", "description": "전체 구간 클리어", "type": "group_clear", "target": 14, "reward": "👑", "hidden": false },
+
+    { "id": 19, "title": "럭키 세븐", "description": "7.777초에 정확히 멈추기", "type": "lucky", "target": 7.777, "reward": "🍀", "hidden": true },
+
+    { "id": 20, "title": "올빙고 1개", "description": "한 구간 9개 스테이지 같은 오차로 완성", "type": "all_bingo", "target": 1, "reward": "🌈", "hidden": true },
+    { "id": 21, "title": "올빙고 2개", "description": "2개 구간 올빙고 달성", "type": "all_bingo", "target": 2, "reward": "🌈", "hidden": true },
+    { "id": 22, "title": "올빙고 3개", "description": "3개 구간 올빙고 달성", "type": "all_bingo", "target": 3, "reward": "✨", "hidden": true },
+
+    { "id": 23, "title": "불굴의 도전자", "description": "한 스테이지에서 100번 실패", "type": "stage_fail", "target": 100, "reward": "💪", "hidden": true },
+    { "id": 24, "title": "끈기의 화신", "description": "한 스테이지에서 200번 실패", "type": "stage_fail", "target": 200, "reward": "💪", "hidden": true },
+    { "id": 25, "title": "포기를 모르는 자", "description": "한 스테이지에서 300번 실패", "type": "stage_fail", "target": 300, "reward": "🔥", "hidden": true },
+    { "id": 26, "title": "인내의 달인", "description": "한 스테이지에서 500번 실패", "type": "stage_fail", "target": 500, "reward": "🔥", "hidden": true },
+    { "id": 27, "title": "전설의 도전자", "description": "한 스테이지에서 1000번 실패", "type": "stage_fail", "target": 1000, "reward": "👑", "hidden": true },
+
+    { "id": 28, "title": "첫 시도 성공", "description": "스테이지를 오차 0.05초 이하로 첫 시도에 성공", "type": "first_try", "target": 0.05, "reward": "🎯", "hidden": true },
+
+    { "id": 29, "title": "신의 경지", "description": "오차 0.000초로 정확히 맞추기", "type": "zero_diff", "target": 0, "reward": "👼", "hidden": true }
+]
