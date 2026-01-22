@@ -69,22 +69,8 @@ function getCurrentMedal(completedCount) {
     return null;
 }
 
-function getUnlockedSkins(medal) {
-    // 테스트 모드: 모든 스킨 잠금 해제
+function getUnlockedSkins() {
     return skins;
-
-    /* 원래 로직
-    if (!medal) return skins.filter(s => s.unlockMedal === null);
-
-    const medalOrder = ['bronze', 'silver', 'gold', 'diamond'];
-    const medalIndex = medalOrder.indexOf(medal);
-
-    return skins.filter(s => {
-        if (!s.unlockMedal) return true;
-        const skinMedalIndex = medalOrder.indexOf(s.unlockMedal);
-        return skinMedalIndex <= medalIndex;
-    });
-    */
 }
 
 // 게임 데이터 관리 (통합)
@@ -286,14 +272,12 @@ function getAllBingoCount(data) {
 }
 
 // 클리어한 그룹 수 계산
-function getClearedGroupCount(data) {
+function getClearedGroupCount() {
     const groupNums = [...new Set(stages.map(s => s.group))];
     let count = 0;
-
     groupNums.forEach(groupNum => {
         if (isGroupCompleted(groupNum)) count++;
     });
-
     return count;
 }
 
@@ -379,20 +363,6 @@ function isStageCleared(stageId) {
     return data.stages[stageId]?.successes > 0;
 }
 
-function getStageData(stageId) {
-    const data = getGameData();
-    return data.stages[stageId] || null;
-}
-
-// 스테이지가 속한 구간의 시험 ID 반환
-function getExamForStage(stageId) {
-    const examStages = stages.filter(s => s.exam).map(s => s.id);
-    for (let examId of examStages) {
-        if (stageId <= examId) return examId;
-    }
-    return null;
-}
-
 // 구간의 일반 스테이지 ID 목록 반환
 function getSectionStages(examId) {
     const examIndex = stages.findIndex(s => s.id === examId);
@@ -425,39 +395,8 @@ function isGroupCompleted(groupNum) {
     return false;
 }
 
-// 이전 시험을 클리어했는지 확인
-function isPreviousExamCleared(examId) {
-    const examStages = stages.filter(s => s.exam).map(s => s.id);
-    const examIndex = examStages.indexOf(examId);
-    if (examIndex === 0) return true; // 첫 시험
-
-    const prevExamId = examStages[examIndex - 1];
-    return isStageCleared(prevExamId);
-}
-
-function canPlayStage(stageId) {
-    // 테스트 모드: 모든 스테이지 열림
+function canPlayStage() {
     return true;
-
-    /* 원래 로직 (테스트 후 복원)
-    const stage = stages.find(s => s.id === stageId);
-    if (!stage) return false;
-
-    // 시험 스테이지인 경우
-    if (stage.exam) {
-        // 이전 시험을 클리어했는지 확인
-        if (!isPreviousExamCleared(stageId)) return false;
-
-        // 해당 구간의 모든 일반 스테이지를 클리어했는지 확인
-        const sectionStages = getSectionStages(stageId);
-        return sectionStages.every(id => isStageCleared(id));
-    }
-
-    // 일반 스테이지인 경우
-    // 이전 시험을 클리어했으면 플레이 가능
-    const examId = getExamForStage(stageId);
-    return isPreviousExamCleared(examId);
-    */
 }
 
 // 화면 전환
@@ -573,22 +512,9 @@ function initMainScreen() {
                 statusText.textContent = '도전';
             }
 
-            const infoContainer = document.createElement('div');
-            infoContainer.className = 'stage-info';
-
-            let targetText = '';
-            // if (stage.target === 'random') {
-            //     targetText = `${stage.targetRange[0]}~${stage.targetRange[1]}초`;
-            // } else {
-            //     targetText = `${stage.target}초`;
-            // }
-            // infoContainer.textContent = targetText;
-
             btnContainer.appendChild(btn);
             btnContainer.appendChild(statusText);
-
             item.appendChild(btnContainer);
-            item.appendChild(infoContainer);
             gridList.appendChild(item);
         });
 
@@ -644,7 +570,7 @@ function initMainScreen() {
         medalDisplay.textContent = `메달 없음 (미션 ${completedCount}/${missions.length})`;
     }
 
-    applySkin(getCurrentSkin());
+    // applySkin(getCurrentSkin());
 }
 
 // 스테이지 시작
@@ -1062,147 +988,168 @@ function showMissionScreen() {
     showScreen('missionScreen');
 }
 
-// 인트로 배경 이미지 목록
-const INTRO_BACKGROUNDS = [
-    'intro_bg_midnight.png',
-    'intro_bg_sunset.png',
-    'intro_bg_day1.png',
-    'intro_bg_day2.png',
-    'intro_bg_evening.png',
-    'intro_bg_night.png'
-];
+// 파티클 시계 시스템
+let clockParticles = [];
+let clockAnimationId = null;
+let clockCanvas = null;
+let clockCtx = null;
 
-// 이미지 프리로딩
-let imagesLoaded = false;
-const loadedImages = {};
+class ClockParticle {
+    constructor(x, y, color) {
+        this.targetX = x;
+        this.targetY = y;
+        // 아래 랜덤 위치에서 시작
+        this.startX = Math.random() * 300;
+        this.startY = 350 + Math.random() * 50;
+        this.x = this.startX;
+        this.y = this.startY;
+        this.color = color;
+        this.size = 2 + Math.random() * 1.5;
 
-function preloadImages() {
-    return new Promise((resolve) => {
-        const loadingProgress = document.getElementById('loadingProgress');
-        let loaded = 0;
-        const total = INTRO_BACKGROUNDS.length;
-
-        INTRO_BACKGROUNDS.forEach((filename) => {
-            const img = new Image();
-            img.onload = img.onerror = () => {
-                loaded++;
-                loadedImages[filename] = img;
-                if (loadingProgress) {
-                    loadingProgress.textContent = `${loaded} / ${total}`;
-                }
-                if (loaded === total) {
-                    imagesLoaded = true;
-                    resolve();
-                }
-            };
-            img.src = `images/${filename}`;
-        });
-    });
-}
-
-function hideLoadingScreen() {
-    const loadingScreen = document.getElementById('loadingScreen');
-    if (loadingScreen) {
-        loadingScreen.classList.add('hidden');
-    }
-}
-
-// 인트로 시계 애니메이션
-let introClockRunning = false;
-let introClockAnimationId = null;
-let lastClockUpdate = 0;
-let currentMinute = 0;
-let currentHour = 6;
-
-function getBackgroundForHour(hour) {
-    // 0-4시: 심야
-    if (hour >= 0 && hour < 5) return 'intro_bg_midnight.png';
-    // 5-6시: 일출 (노을 재활용)
-    if (hour >= 5 && hour < 7) return 'intro_bg_sunset.png';
-    // 7-11시: 오전
-    if (hour >= 7 && hour < 12) return 'intro_bg_day1.png';
-    // 12-16시: 오후
-    if (hour >= 12 && hour < 17) return 'intro_bg_day2.png';
-    // 17-18시: 노을
-    if (hour >= 17 && hour < 19) return 'intro_bg_sunset.png';
-    // 19-20시: 초저녁
-    if (hour >= 19 && hour < 21) return 'intro_bg_evening.png';
-    // 21-23시: 밤
-    return 'intro_bg_night.png';
-}
-
-function introClockLoop(timestamp) {
-    if (!introClockRunning) return;
-
-    const hourHand = document.getElementById('hourHand');
-    const minuteHand = document.getElementById('minuteHand');
-    const introBg = document.getElementById('introScreenBg');
-
-    if (!hourHand || !minuteHand || !introBg) {
-        introClockAnimationId = requestAnimationFrame(introClockLoop);
-        return;
+        this.arrived = false;
+        this.alpha = 0;
+        this.progress = 0;
+        this.speed = 0.015 + Math.random() * 0.01;
     }
 
-    // 100ms마다 업데이트
-    if (timestamp - lastClockUpdate >= 100) {
-        lastClockUpdate = timestamp;
-
-        // 분을 5분씩 증가
-        currentMinute += 5;
-        if (currentMinute >= 60) {
-            currentMinute = 0;
-            currentHour += 1;
-            if (currentHour >= 24) currentHour = 0;
+    update() {
+        if (!this.arrived) {
+            this.progress += this.speed;
+            if (this.progress >= 1) {
+                this.progress = 1;
+                this.arrived = true;
+            }
+            // easeOutCubic
+            const ease = 1 - Math.pow(1 - this.progress, 3);
+            this.x = this.startX + (this.targetX - this.startX) * ease;
+            this.y = this.startY + (this.targetY - this.startY) * ease;
+            this.alpha = Math.min(1, this.progress * 1.5);
         }
-
-        // 시침 각도 (12시간 기준, 분도 반영)
-        const hourAngle = ((currentHour % 12) * 30 + (currentMinute / 60) * 30) - 90;
-        // 분침 각도
-        const minuteAngle = (currentMinute * 6) - 90;
-
-        // 시침/분침 회전
-        hourHand.setAttribute('transform', `rotate(${hourAngle} 100 100)`);
-        minuteHand.setAttribute('transform', `rotate(${minuteAngle} 100 100)`);
-
-        // 배경 이미지 적용
-        const bgImage = getBackgroundForHour(currentHour);
-        introBg.style.backgroundImage = `url("images/${bgImage}")`;
     }
 
-    introClockAnimationId = requestAnimationFrame(introClockLoop);
+    draw(ctx) {
+        if (this.alpha <= 0) return;
+        ctx.fillStyle = this.color.replace('1)', `${this.alpha})`);
+        ctx.fillRect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
+    }
+}
+
+function createClockParticles(h, m, s) {
+    const particles = [];
+    const cx = 150, cy = 150;
+
+    // 시계 외곽 원 (점들로 구성)
+    for (let i = 0; i < 120; i++) {
+        const angle = (i / 120) * Math.PI * 2 - Math.PI / 2;
+        const x = cx + Math.cos(angle) * 110;
+        const y = cy + Math.sin(angle) * 110;
+        particles.push(new ClockParticle(x, y, 'rgba(255, 255, 255, 1)'));
+    }
+
+    // 시간 눈금 (12개)
+    for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2 - Math.PI / 2;
+        const len = i % 3 === 0 ? 15 : 8;
+        for (let j = 0; j < len; j += 3) {
+            const x = cx + Math.cos(angle) * (100 - j);
+            const y = cy + Math.sin(angle) * (100 - j);
+            particles.push(new ClockParticle(x, y, 'rgba(255, 255, 255, 1)'));
+        }
+    }
+
+    // 시침
+    const hourAngle = ((h % 12) * 30 + m * 0.5) * Math.PI / 180 - Math.PI / 2;
+    for (let i = 0; i < 40; i += 4) {
+        const x = cx + Math.cos(hourAngle) * i;
+        const y = cy + Math.sin(hourAngle) * i;
+        particles.push(new ClockParticle(x, y, 'rgba(255, 255, 255, 1)'));
+    }
+
+    // 분침
+    const minuteAngle = (m * 6 + s * 0.1) * Math.PI / 180 - Math.PI / 2;
+    for (let i = 0; i < 65; i += 4) {
+        const x = cx + Math.cos(minuteAngle) * i;
+        const y = cy + Math.sin(minuteAngle) * i;
+        particles.push(new ClockParticle(x, y, 'rgba(255, 255, 255, 1)'));
+    }
+
+    // 초침
+    const secondAngle = (s * 6) * Math.PI / 180 - Math.PI / 2;
+    for (let i = 0; i < 80; i += 4) {
+        const x = cx + Math.cos(secondAngle) * i;
+        const y = cy + Math.sin(secondAngle) * i;
+        particles.push(new ClockParticle(x, y, 'rgba(255, 120, 120, 1)'));
+    }
+
+    // 중앙점
+    for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        const x = cx + Math.cos(angle) * 5;
+        const y = cy + Math.sin(angle) * 5;
+        particles.push(new ClockParticle(x, y, 'rgba(255, 255, 255, 1)'));
+    }
+    particles.push(new ClockParticle(cx, cy, 'rgba(255, 255, 255, 1)'));
+
+    return particles;
+}
+
+function animateClock() {
+    if (!clockCtx) return;
+
+    clockCtx.clearRect(0, 0, 300, 300);
+
+    let allArrived = true;
+    for (let i = 0; i < clockParticles.length; i++) {
+        const p = clockParticles[i];
+        p.update();
+        p.draw(clockCtx);
+        if (!p.arrived) allArrived = false;
+    }
+
+    // 모두 도착하면 애니메이션 중지 (정적 시계 유지)
+    if (!allArrived) {
+        clockAnimationId = requestAnimationFrame(animateClock);
+    } else {
+        clockAnimationId = null;
+    }
 }
 
 function startIntroClock() {
-    if (introClockRunning) return;
+    clockCanvas = document.getElementById('particleClock');
+    const digitalClock = document.getElementById('digitalClock');
 
-    // 초기 배경 설정
-    const introBg = document.getElementById('introScreenBg');
-    if (introBg) {
-        const initialBg = getBackgroundForHour(currentHour);
-        introBg.style.backgroundImage = `url("images/${initialBg}")`;
-    }
+    if (!clockCanvas || !digitalClock) return;
 
-    introClockRunning = true;
-    lastClockUpdate = 0;
-    introClockAnimationId = requestAnimationFrame(introClockLoop);
+    clockCtx = clockCanvas.getContext('2d');
+
+    const now = new Date();
+    const h = now.getHours();
+    const m = now.getMinutes();
+    const s = now.getSeconds();
+    const ms = now.getMilliseconds();
+
+    // 파티클로 시계 생성 (아래에서 올라옴)
+    clockParticles = createClockParticles(h, m, s);
+    animateClock();
+
+    // 디지털 시계
+    const hourStr = String(h).padStart(2, '0');
+    const minuteStr = String(m).padStart(2, '0');
+    const secondStr = String(s).padStart(2, '0');
+    const msStr = String(ms).padStart(3, '0');
+    digitalClock.textContent = `${hourStr}:${minuteStr}:${secondStr}.${msStr}`;
 }
 
 function stopIntroClock() {
-    introClockRunning = false;
-    if (introClockAnimationId) {
-        cancelAnimationFrame(introClockAnimationId);
-        introClockAnimationId = null;
+    // 애니메이션 정리
+    if (clockAnimationId) {
+        cancelAnimationFrame(clockAnimationId);
+        clockAnimationId = null;
     }
 }
 
 // 이벤트 리스너
-document.addEventListener('DOMContentLoaded', async () => {
-    // 이미지 프리로딩
-    await preloadImages();
-
-    // 로딩 화면 숨기기
-    hideLoadingScreen();
-
+document.addEventListener('DOMContentLoaded', () => {
     // 인트로 시계 시작
     startIntroClock();
 
