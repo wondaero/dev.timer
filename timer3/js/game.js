@@ -73,6 +73,165 @@ function getUnlockedSkins() {
     return skins;
 }
 
+// 효과 관리
+function getActiveEffects() {
+    const saved = localStorage.getItem(EFFECTS_KEY);
+    return saved ? JSON.parse(saved) : [];
+}
+
+function setActiveEffects(effectIds) {
+    localStorage.setItem(EFFECTS_KEY, JSON.stringify(effectIds));
+}
+
+function toggleEffect(effectId) {
+    const active = getActiveEffects();
+    const index = active.indexOf(effectId);
+    if (index > -1) {
+        active.splice(index, 1);
+    } else {
+        active.push(effectId);
+    }
+    setActiveEffects(active);
+}
+
+function isEffectActive(effectId) {
+    return getActiveEffects().includes(effectId);
+}
+
+function getUnlockedEffects() {
+    // TODO: 미션 연동 시 unlockMission 체크
+    return effects;
+}
+
+// 효과 렌더링 시스템
+let effectAnimationId = null;
+let particles = [];
+let rippleInterval = null;
+
+function initEffects() {
+    const container = document.querySelector('.timer-display');
+    if (!container) return;
+
+    container.style.position = 'relative';
+    container.style.overflow = 'visible';
+
+    // 파티클용 캔버스
+    let canvas = document.getElementById('effectCanvas');
+    if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.id = 'effectCanvas';
+        canvas.width = 300;
+        canvas.height = 300;
+        canvas.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:1;';
+        container.appendChild(canvas);
+    }
+}
+
+function createRipple() {
+    const ripple = document.createElement('div');
+    ripple.className = 'ripple-effect';
+    document.body.appendChild(ripple);
+
+    // 애니메이션 끝나면 제거
+    ripple.addEventListener('animationend', () => ripple.remove());
+}
+
+function startEffects() {
+    initEffects();
+    particles = [];
+
+    const activeEffects = getActiveEffects();
+    const progressBar = document.getElementById('progressBar');
+
+    // 효과가 하나라도 활성화되어 있으면 프로그레스 링에 효과 적용
+    if (activeEffects.length > 0 && progressBar) {
+        progressBar.classList.add('effect-active');
+    }
+
+    // 파장 효과 시작
+    if (activeEffects.includes('ripple')) {
+        createRipple();
+        rippleInterval = setInterval(createRipple, 1500);
+    }
+
+    // 파티클 효과 시작
+    if (activeEffects.includes('particle')) {
+        animateParticles();
+    }
+}
+
+function stopEffects() {
+    if (effectAnimationId) {
+        cancelAnimationFrame(effectAnimationId);
+        effectAnimationId = null;
+    }
+    if (rippleInterval) {
+        clearInterval(rippleInterval);
+        rippleInterval = null;
+    }
+    // 남은 파장 제거
+    document.querySelectorAll('.ripple-effect').forEach(el => el.remove());
+
+    // 프로그레스 링 효과 제거
+    const progressBar = document.getElementById('progressBar');
+    if (progressBar) {
+        progressBar.classList.remove('effect-active');
+    }
+
+    // 파티클 캔버스 정리
+    const canvas = document.getElementById('effectCanvas');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    particles = [];
+}
+
+function animateParticles() {
+    const canvas = document.getElementById('effectCanvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const cx = 150, cy = 150;
+
+    ctx.clearRect(0, 0, 300, 300);
+
+    // 새 파티클 생성
+    if (Math.random() < 0.3) {
+        const angle = Math.random() * Math.PI * 2;
+        const radius = 90 + Math.random() * 20;
+        particles.push({
+            x: cx + Math.cos(angle) * radius,
+            y: cy + Math.sin(angle) * radius,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2,
+            life: 1,
+            size: 2 + Math.random() * 3,
+            color: `hsl(${Math.random() * 60 + 30}, 100%, 70%)`
+        });
+    }
+
+    // 파티클 업데이트 및 렌더링
+    particles = particles.filter(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.02;
+
+        if (p.life <= 0) return false;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.color.replace(')', `, ${p.life})`).replace('hsl', 'hsla');
+        ctx.fill();
+
+        return true;
+    });
+
+    if (gameState.running && getActiveEffects().includes('particle')) {
+        effectAnimationId = requestAnimationFrame(animateParticles);
+    }
+}
+
 // 게임 데이터 관리 (통합)
 function getGameData() {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -662,6 +821,7 @@ function updateGameUI() {
     progressBar.style.strokeDasharray = CIRCLE_CIRCUMFERENCE;
     progressBar.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE;
     progressBar.style.opacity = 0.3; // 초기 투명도 설정
+    progressBar.classList.remove('effect-active'); // 효과 클래스 리셋
 }
 
 // 타이머 업데이트
@@ -711,6 +871,7 @@ function stopTimer() {
 
     gameState.running = false;
     cancelAnimationFrame(gameState.animationId);
+    stopEffects();
 
     if (currentStage.multi) {
         recordMultiTarget();
@@ -812,53 +973,59 @@ function showResult() {
         nextBtn.style.display = 'none';
     }
 
-    showScreen('resultScreen');
+    showScreen('resultScreen', false);
 }
 
-// 스킨 화면
-function showSkinScreen() {
+// 효과 화면
+function showEffectScreen() {
     const data = getGameData();
-    const completedCount = data.completedMissions.length;
-    const currentMedal = getCurrentMedal(completedCount);
-    const unlockedSkins = getUnlockedSkins(currentMedal);
-    const currentSkinId = getCurrentSkin();
+    const unlockedEffects = getUnlockedEffects();
+    const activeEffects = getActiveEffects();
+    const completedMissionCount = data.completedMissions.length;
 
-    const currentMedalEl = document.getElementById('currentMedal');
-    if (currentMedal) {
-        const medal = medals[currentMedal];
-        currentMedalEl.textContent = `${medal.emoji} ${medal.name}`;
-    } else {
-        currentMedalEl.textContent = '없음';
-    }
+    // 통계 업데이트
+    document.getElementById('totalPlays').textContent = data.totalPlays;
+    document.getElementById('missionComplete').textContent = completedMissionCount;
+    document.getElementById('effectUnlocked').textContent = unlockedEffects.length;
 
-    const skinGrid = document.getElementById('skinGrid');
-    skinGrid.innerHTML = skins.map(skin => {
-        const unlocked = unlockedSkins.includes(skin);
-        const active = skin.id === currentSkinId;
+    const effectList = document.getElementById('effectList');
 
-        let unlockText = '';
-        if (!unlocked && skin.unlockMedal) {
-            const medal = medals[skin.unlockMedal];
-            unlockText = `${medal.emoji} ${medal.name} 필요`;
-        }
+    let html = '';
 
-        return `
-            <div class="skin-card ${active ? 'active' : ''} ${!unlocked ? 'locked' : ''}"
-                 onclick="${unlocked ? `selectSkin('${skin.id}')` : ''}">
-                ${!unlocked ? '<div class="skin-locked-icon">🔒</div>' : ''}
-                <div class="skin-preview" style="background: ${skin.colors.bg}"></div>
-                <div class="skin-name">${skin.name}</div>
-                <div class="skin-unlock">${unlockText || (active ? '✓ 사용중' : '클릭하여 적용')}</div>
+    effects.forEach(effect => {
+        const unlocked = unlockedEffects.some(e => e.id === effect.id);
+        const active = activeEffects.includes(effect.id);
+
+        html += `
+            <div class="effect-card ${active ? 'active' : ''} ${!unlocked ? 'locked' : ''}"
+                 onclick="${unlocked ? `onToggleEffect('${effect.id}')` : ''}">
+                <div class="effect-preview-icon">
+                    ${effect.preview}
+                </div>
+                <div class="effect-info">
+                    <div class="effect-name">${effect.name}</div>
+                    <div class="effect-desc">${effect.description}</div>
+                    ${unlocked ? `
+                        <div class="effect-toggle ${active ? 'on' : 'off'}">
+                            ${active ? '✓ 활성화됨' : '○ 비활성화'}
+                        </div>
+                    ` : `
+                        <div class="effect-mission">
+                            <div class="effect-mission-title">🔒 잠금됨</div>
+                        </div>
+                    `}
+                </div>
             </div>
         `;
-    }).join('');
+    });
 
-    showScreen('skinScreen');
+    effectList.innerHTML = html;
+    showScreen('effectScreen');
 }
 
-function selectSkin(skinId) {
-    setSkin(skinId);
-    showSkinScreen();
+function onToggleEffect(effectId) {
+    toggleEffect(effectId);
+    showEffectScreen();
 }
 
 // 미션별 현재 진행도 계산
@@ -988,164 +1155,21 @@ function showMissionScreen() {
     showScreen('missionScreen');
 }
 
-// 파티클 시계 시스템
-let clockParticles = [];
-let clockAnimationId = null;
-let clockCanvas = null;
-let clockCtx = null;
-
-class ClockParticle {
-    constructor(x, y, color) {
-        this.targetX = x;
-        this.targetY = y;
-        // 아래 랜덤 위치에서 시작
-        this.startX = Math.random() * 300;
-        this.startY = 350 + Math.random() * 50;
-        this.x = this.startX;
-        this.y = this.startY;
-        this.color = color;
-        this.size = 2 + Math.random() * 1.5;
-
-        this.arrived = false;
-        this.alpha = 0;
-        this.progress = 0;
-        this.speed = 0.015 + Math.random() * 0.01;
-    }
-
-    update() {
-        if (!this.arrived) {
-            this.progress += this.speed;
-            if (this.progress >= 1) {
-                this.progress = 1;
-                this.arrived = true;
-            }
-            // easeOutCubic
-            const ease = 1 - Math.pow(1 - this.progress, 3);
-            this.x = this.startX + (this.targetX - this.startX) * ease;
-            this.y = this.startY + (this.targetY - this.startY) * ease;
-            this.alpha = Math.min(1, this.progress * 1.5);
-        }
-    }
-
-    draw(ctx) {
-        if (this.alpha <= 0) return;
-        ctx.fillStyle = this.color.replace('1)', `${this.alpha})`);
-        ctx.fillRect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
-    }
-}
-
-function createClockParticles(h, m, s) {
-    const particles = [];
-    const cx = 150, cy = 150;
-
-    // 시계 외곽 원 (점들로 구성)
-    for (let i = 0; i < 120; i++) {
-        const angle = (i / 120) * Math.PI * 2 - Math.PI / 2;
-        const x = cx + Math.cos(angle) * 110;
-        const y = cy + Math.sin(angle) * 110;
-        particles.push(new ClockParticle(x, y, 'rgba(255, 255, 255, 1)'));
-    }
-
-    // 시간 눈금 (12개)
-    for (let i = 0; i < 12; i++) {
-        const angle = (i / 12) * Math.PI * 2 - Math.PI / 2;
-        const len = i % 3 === 0 ? 15 : 8;
-        for (let j = 0; j < len; j += 3) {
-            const x = cx + Math.cos(angle) * (100 - j);
-            const y = cy + Math.sin(angle) * (100 - j);
-            particles.push(new ClockParticle(x, y, 'rgba(255, 255, 255, 1)'));
-        }
-    }
-
-    // 시침
-    const hourAngle = ((h % 12) * 30 + m * 0.5) * Math.PI / 180 - Math.PI / 2;
-    for (let i = 0; i < 40; i += 4) {
-        const x = cx + Math.cos(hourAngle) * i;
-        const y = cy + Math.sin(hourAngle) * i;
-        particles.push(new ClockParticle(x, y, 'rgba(255, 255, 255, 1)'));
-    }
-
-    // 분침
-    const minuteAngle = (m * 6 + s * 0.1) * Math.PI / 180 - Math.PI / 2;
-    for (let i = 0; i < 65; i += 4) {
-        const x = cx + Math.cos(minuteAngle) * i;
-        const y = cy + Math.sin(minuteAngle) * i;
-        particles.push(new ClockParticle(x, y, 'rgba(255, 255, 255, 1)'));
-    }
-
-    // 초침
-    const secondAngle = (s * 6) * Math.PI / 180 - Math.PI / 2;
-    for (let i = 0; i < 80; i += 4) {
-        const x = cx + Math.cos(secondAngle) * i;
-        const y = cy + Math.sin(secondAngle) * i;
-        particles.push(new ClockParticle(x, y, 'rgba(255, 120, 120, 1)'));
-    }
-
-    // 중앙점
-    for (let i = 0; i < 8; i++) {
-        const angle = (i / 8) * Math.PI * 2;
-        const x = cx + Math.cos(angle) * 5;
-        const y = cy + Math.sin(angle) * 5;
-        particles.push(new ClockParticle(x, y, 'rgba(255, 255, 255, 1)'));
-    }
-    particles.push(new ClockParticle(cx, cy, 'rgba(255, 255, 255, 1)'));
-
-    return particles;
-}
-
-function animateClock() {
-    if (!clockCtx) return;
-
-    clockCtx.clearRect(0, 0, 300, 300);
-
-    let allArrived = true;
-    for (let i = 0; i < clockParticles.length; i++) {
-        const p = clockParticles[i];
-        p.update();
-        p.draw(clockCtx);
-        if (!p.arrived) allArrived = false;
-    }
-
-    // 모두 도착하면 애니메이션 중지 (정적 시계 유지)
-    if (!allArrived) {
-        clockAnimationId = requestAnimationFrame(animateClock);
-    } else {
-        clockAnimationId = null;
-    }
-}
-
+// 디지털 시계 (접근 시점 고정)
 function startIntroClock() {
-    clockCanvas = document.getElementById('particleClock');
     const digitalClock = document.getElementById('digitalClock');
-
-    if (!clockCanvas || !digitalClock) return;
-
-    clockCtx = clockCanvas.getContext('2d');
+    if (!digitalClock) return;
 
     const now = new Date();
-    const h = now.getHours();
-    const m = now.getMinutes();
-    const s = now.getSeconds();
-    const ms = now.getMilliseconds();
-
-    // 파티클로 시계 생성 (아래에서 올라옴)
-    clockParticles = createClockParticles(h, m, s);
-    animateClock();
-
-    // 디지털 시계
-    const hourStr = String(h).padStart(2, '0');
-    const minuteStr = String(m).padStart(2, '0');
-    const secondStr = String(s).padStart(2, '0');
-    const msStr = String(ms).padStart(3, '0');
-    digitalClock.textContent = `${hourStr}:${minuteStr}:${secondStr}.${msStr}`;
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    const ms = String(now.getMilliseconds()).padStart(3, '0');
+    digitalClock.textContent = `${h}:${m}:${s}.${ms}`;
 }
 
 function stopIntroClock() {
-    // 애니메이션 정리
-    if (clockAnimationId) {
-        cancelAnimationFrame(clockAnimationId);
-        clockAnimationId = null;
-    }
+    // 더 이상 정리할 것 없음
 }
 
 // 이벤트 리스너
@@ -1171,6 +1195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('stopBtn').disabled = false;
         document.getElementById('backBtn').disabled = true;
 
+        startEffects();
         updateTimer();
     };
 
@@ -1204,24 +1229,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('homeBtn').onclick = () => {
         initMainScreen();
-        showScreen('mainScreen');
+        showScreen('mainScreen', false);
     };
 
-    // 미션 화면
-    document.getElementById('missionBtn').onclick = () => {
-        showMissionScreen();
+    // 효과 화면
+    document.getElementById('effectBtn').onclick = () => {
+        showEffectScreen();
     };
 
-    document.getElementById('missionBackBtn').onclick = () => {
-        showScreen('mainScreen');
-    };
-
-    // 스킨 화면
-    document.getElementById('skinBtn').onclick = () => {
-        showSkinScreen();
-    };
-
-    document.getElementById('skinBackBtn').onclick = () => {
+    document.getElementById('effectBackBtn').onclick = () => {
         initMainScreen();
         showScreen('mainScreen');
     };
@@ -1229,6 +1245,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // 브라우저 뒤로가기/앞으로가기 처리
     window.addEventListener('popstate', (event) => {
         if (event.state && event.state.screen) {
+            // 게임 화면으로 뒤로가기하면 스테이지(메인)로 리다이렉트
+            if (event.state.screen === 'gameScreen') {
+                // 게임 진행 중이면 확인 창
+                if (gameState.running) {
+                    if (!confirm('게임을 포기하시겠습니까?')) {
+                        // 취소하면 다시 게임 화면으로
+                        history.pushState({ screen: 'gameScreen' }, '', '#gameScreen');
+                        return;
+                    }
+                    gameState.running = false;
+                    cancelAnimationFrame(gameState.animationId);
+                }
+                initMainScreen();
+                showScreen('mainScreen', false);
+                history.replaceState({ screen: 'mainScreen' }, '', '#mainScreen');
+                return;
+            }
+
             showScreen(event.state.screen, false);
 
             // 메인 화면으로 돌아갈 때 데이터 새로고침

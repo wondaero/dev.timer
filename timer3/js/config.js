@@ -1,9 +1,28 @@
 // 게임 설정 및 상수
 const STORAGE_KEY = 'timerGameData';
 const SKIN_KEY = 'timerGameSkin';
+const EFFECTS_KEY = 'timerGameEffects';
 const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 90; // r=90
 
-// 스킨 데이터
+// 효과 데이터
+const effects = [
+    {
+        id: 'particle',
+        name: '파티클',
+        description: '타이머 주변에 빛나는 입자 효과',
+        unlockMission: null,  // 기본 해금
+        preview: '✨'
+    },
+    {
+        id: 'ripple',
+        name: '파장',
+        description: '타이머 원에서 퍼져나가는 파장 효과',
+        unlockMission: null,  // 기본 해금
+        preview: '🌊'
+    }
+];
+
+// 스킨 데이터 (배경 테마)
 const skins = [
     {
         id: 'default',

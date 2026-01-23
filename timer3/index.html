@@ -12,10 +12,7 @@
         <!-- 인트로 화면 -->
         <div id="introScreen" class="screen active">
             <div class="intro-screen" id="introScreenBg">
-                <div class="intro-clock-container">
-                    <canvas id="particleClock" width="300" height="300"></canvas>
-                    <div id="digitalClock" class="digital-clock">00:00:00.000</div>
-                </div>
+                <div id="digitalClock" class="digital-clock">00:00:00.000</div>
                 <h2 class="intro-subtitle">인더모먼</h2>
                 <p class="intro-description">그 순간을 잡아라</p>
                 <button id="startGameBtn" class="btn btn-primary btn-large">시작하기</button>
@@ -31,51 +28,33 @@
                         진행률: <span id="progress">0</span>/51 클리어<br>
                         <span id="medalDisplay">메달 없음</span>
                     </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button id="skinBtn" class="mission-btn">🎨 스킨</button>
-                        <button id="missionBtn" class="mission-btn">📋 미션</button>
-                    </div>
+                    <button id="effectBtn" class="mission-btn">✨ 효과</button>
                 </div>
                 <div class="stage-groups" id="stageGrid"></div>
             </div>
         </div>
 
-        <!-- 스킨 화면 -->
-        <div id="skinScreen" class="screen">
-            <div class="mission-screen">
-                <h2>🎨 스킨 선택</h2>
-                <div class="medal-info">
-                    <p>현재 메달: <span id="currentMedal">없음</span></p>
-                    <p style="font-size: 0.9em; opacity: 0.8;">미션을 완료하여 메달을 획득하고 새로운 스킨을 잠금 해제하세요!</p>
-                </div>
-                <div class="skin-grid" id="skinGrid"></div>
-                <div class="controls">
-                    <button id="skinBackBtn" class="btn">돌아가기</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 미션 화면 -->
-        <div id="missionScreen" class="screen">
-            <div class="mission-screen">
-                <h2>📋 미션</h2>
-                <div class="mission-stats">
+        <!-- 효과 화면 -->
+        <div id="effectScreen" class="screen">
+            <div class="effect-screen">
+                <h2>✨ 효과</h2>
+                <div class="effect-stats">
                     <div class="stat-item">
                         <div class="stat-label">총 플레이</div>
                         <div class="stat-value" id="totalPlays">0</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-label">완벽 연속 최고</div>
-                        <div class="stat-value" id="perfectCount">0</div>
+                        <div class="stat-label">미션 완료</div>
+                        <div class="stat-value" id="missionComplete">0</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-label">오늘 플레이</div>
-                        <div class="stat-value" id="maxCombo">0</div>
+                        <div class="stat-label">효과 해금</div>
+                        <div class="stat-value" id="effectUnlocked">0</div>
                     </div>
                 </div>
-                <div class="mission-list" id="missionList"></div>
+                <div class="effect-list" id="effectList"></div>
                 <div class="controls">
-                    <button id="missionBackBtn" class="btn">돌아가기</button>
+                    <button id="effectBackBtn" class="btn">돌아가기</button>
                 </div>
             </div>
         </div>
