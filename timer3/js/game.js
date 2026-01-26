@@ -103,6 +103,256 @@ function getUnlockedEffects() {
     return effects;
 }
 
+// 클릭 효과 관리
+const CLICK_EFFECTS_KEY = 'timerGameClickEffects';
+
+function getActiveClickEffects() {
+    const saved = localStorage.getItem(CLICK_EFFECTS_KEY);
+    return saved ? JSON.parse(saved) : [];
+}
+
+function setActiveClickEffects(effectIds) {
+    localStorage.setItem(CLICK_EFFECTS_KEY, JSON.stringify(effectIds));
+}
+
+function toggleClickEffect(effectId) {
+    const active = getActiveClickEffects();
+    const index = active.indexOf(effectId);
+    if (index > -1) {
+        active.splice(index, 1);
+    } else {
+        active.push(effectId);
+    }
+    setActiveClickEffects(active);
+}
+
+function getUnlockedClickEffects() {
+    // 테스트용: 모두 해금
+    return clickEffects;
+}
+
+// 전역 클릭 효과 렌더링
+function createClickEffect(x, y) {
+    const activeEffects = getActiveClickEffects();
+    if (activeEffects.length === 0) return;
+
+    activeEffects.forEach(effectId => {
+        switch(effectId) {
+            case 'sparkle': createSparkleEffect(x, y); break;
+            case 'ripple': createClickRippleEffect(x, y); break;
+            case 'particle': createParticleEffect(x, y); break;
+            case 'heart': createHeartEffect(x, y); break;
+            case 'fire': createFireEffect(x, y); break;
+            case 'petal': createPetalEffect(x, y); break;
+            case 'bubble': createBubbleEffect(x, y); break;
+            case 'snow': createSnowEffect(x, y); break;
+            case 'electric': createElectricEffect(x, y); break;
+            case 'ink': createInkEffect(x, y); break;
+            case 'rainbow': createRainbowEffect(x, y); break;
+            case 'neon': createNeonEffect(x, y); break;
+        }
+    });
+}
+
+// 반짝임 효과
+function createSparkleEffect(x, y) {
+    for (let i = 0; i < 8; i++) {
+        const spark = document.createElement('div');
+        spark.className = 'click-effect sparkle-effect';
+        spark.innerHTML = '✦';
+        spark.style.left = x + 'px';
+        spark.style.top = y + 'px';
+        spark.style.setProperty('--angle', (i * 45) + 'deg');
+        spark.style.setProperty('--distance', (30 + Math.random() * 40) + 'px');
+        spark.style.animationDelay = (Math.random() * 0.1) + 's';
+        document.body.appendChild(spark);
+        spark.addEventListener('animationend', () => spark.remove());
+    }
+}
+
+// 파장 효과
+function createClickRippleEffect(x, y) {
+    for (let i = 0; i < 3; i++) {
+        const ripple = document.createElement('div');
+        ripple.className = 'click-effect click-ripple-effect';
+        ripple.style.left = x + 'px';
+        ripple.style.top = y + 'px';
+        ripple.style.animationDelay = (i * 0.15) + 's';
+        document.body.appendChild(ripple);
+        ripple.addEventListener('animationend', () => ripple.remove());
+    }
+}
+
+// 파티클 효과
+function createParticleEffect(x, y) {
+    const colors = ['#ff6b6b', '#ffd700', '#4ecdc4', '#45b7d1', '#96ceb4', '#ff9ff3'];
+    for (let i = 0; i < 12; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'click-effect particle-effect';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+        particle.style.setProperty('--tx', (Math.random() - 0.5) * 100 + 'px');
+        particle.style.setProperty('--ty', (Math.random() - 0.5) * 100 + 'px');
+        document.body.appendChild(particle);
+        particle.addEventListener('animationend', () => particle.remove());
+    }
+}
+
+// 하트 효과
+function createHeartEffect(x, y) {
+    for (let i = 0; i < 5; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'click-effect heart-effect';
+        heart.innerHTML = '❤️';
+        heart.style.left = (x + (Math.random() - 0.5) * 40) + 'px';
+        heart.style.top = y + 'px';
+        heart.style.animationDelay = (Math.random() * 0.2) + 's';
+        heart.style.fontSize = (12 + Math.random() * 16) + 'px';
+        document.body.appendChild(heart);
+        heart.addEventListener('animationend', () => heart.remove());
+    }
+}
+
+// 불꽃 효과
+function createFireEffect(x, y) {
+    const fireEmojis = ['🔥', '✨', '💥'];
+    for (let i = 0; i < 8; i++) {
+        const fire = document.createElement('div');
+        fire.className = 'click-effect fire-effect';
+        fire.innerHTML = fireEmojis[Math.floor(Math.random() * fireEmojis.length)];
+        fire.style.left = x + 'px';
+        fire.style.top = y + 'px';
+        fire.style.setProperty('--angle', (i * 45 + Math.random() * 20) + 'deg');
+        fire.style.setProperty('--distance', (20 + Math.random() * 30) + 'px');
+        document.body.appendChild(fire);
+        fire.addEventListener('animationend', () => fire.remove());
+    }
+}
+
+// 꽃잎 효과
+function createPetalEffect(x, y) {
+    const petals = ['🌸', '🌺', '🌷', '💮'];
+    for (let i = 0; i < 6; i++) {
+        const petal = document.createElement('div');
+        petal.className = 'click-effect petal-effect';
+        petal.innerHTML = petals[Math.floor(Math.random() * petals.length)];
+        petal.style.left = (x + (Math.random() - 0.5) * 60) + 'px';
+        petal.style.top = y + 'px';
+        petal.style.setProperty('--drift', (Math.random() - 0.5) * 60 + 'px');
+        petal.style.animationDelay = (Math.random() * 0.3) + 's';
+        document.body.appendChild(petal);
+        petal.addEventListener('animationend', () => petal.remove());
+    }
+}
+
+// 버블 효과
+function createBubbleEffect(x, y) {
+    for (let i = 0; i < 6; i++) {
+        const bubble = document.createElement('div');
+        bubble.className = 'click-effect bubble-effect';
+        bubble.style.left = (x + (Math.random() - 0.5) * 50) + 'px';
+        bubble.style.top = y + 'px';
+        bubble.style.width = bubble.style.height = (8 + Math.random() * 16) + 'px';
+        bubble.style.animationDelay = (Math.random() * 0.2) + 's';
+        document.body.appendChild(bubble);
+        bubble.addEventListener('animationend', () => bubble.remove());
+    }
+}
+
+// 눈송이 효과
+function createSnowEffect(x, y) {
+    const snowflakes = ['❄️', '❅', '❆', '✻'];
+    for (let i = 0; i < 6; i++) {
+        const snow = document.createElement('div');
+        snow.className = 'click-effect snow-effect';
+        snow.innerHTML = snowflakes[Math.floor(Math.random() * snowflakes.length)];
+        snow.style.left = (x + (Math.random() - 0.5) * 80) + 'px';
+        snow.style.top = y + 'px';
+        snow.style.setProperty('--drift', (Math.random() - 0.5) * 40 + 'px');
+        snow.style.animationDelay = (Math.random() * 0.3) + 's';
+        snow.style.fontSize = (10 + Math.random() * 14) + 'px';
+        document.body.appendChild(snow);
+        snow.addEventListener('animationend', () => snow.remove());
+    }
+}
+
+// 전기 효과
+function createElectricEffect(x, y) {
+    for (let i = 0; i < 5; i++) {
+        const bolt = document.createElement('div');
+        bolt.className = 'click-effect electric-effect';
+        bolt.innerHTML = '⚡';
+        bolt.style.left = x + 'px';
+        bolt.style.top = y + 'px';
+        bolt.style.setProperty('--angle', (Math.random() * 360) + 'deg');
+        bolt.style.setProperty('--distance', (20 + Math.random() * 40) + 'px');
+        bolt.style.animationDelay = (Math.random() * 0.1) + 's';
+        document.body.appendChild(bolt);
+        bolt.addEventListener('animationend', () => bolt.remove());
+    }
+}
+
+// 잉크 효과
+function createInkEffect(x, y) {
+    const colors = ['#1a1a2e', '#16213e', '#0f3460', '#533483', '#e94560'];
+    for (let i = 0; i < 5; i++) {
+        const ink = document.createElement('div');
+        ink.className = 'click-effect ink-effect';
+        ink.style.left = x + 'px';
+        ink.style.top = y + 'px';
+        ink.style.background = colors[Math.floor(Math.random() * colors.length)];
+        ink.style.animationDelay = (i * 0.05) + 's';
+        document.body.appendChild(ink);
+        ink.addEventListener('animationend', () => ink.remove());
+    }
+}
+
+// 무지개 효과
+function createRainbowEffect(x, y) {
+    const colors = ['#ff0000', '#ff8000', '#ffff00', '#00ff00', '#0080ff', '#4000ff', '#ff00ff'];
+    for (let i = 0; i < 3; i++) {
+        const ring = document.createElement('div');
+        ring.className = 'click-effect rainbow-effect';
+        ring.style.left = x + 'px';
+        ring.style.top = y + 'px';
+        ring.style.borderColor = colors[i % colors.length];
+        ring.style.animationDelay = (i * 0.1) + 's';
+        document.body.appendChild(ring);
+        ring.addEventListener('animationend', () => ring.remove());
+    }
+}
+
+// 네온 효과
+function createNeonEffect(x, y) {
+    const colors = ['#ff00ff', '#00ffff', '#ff0080', '#80ff00'];
+    for (let i = 0; i < 2; i++) {
+        const neon = document.createElement('div');
+        neon.className = 'click-effect neon-effect';
+        neon.style.left = x + 'px';
+        neon.style.top = y + 'px';
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        neon.style.borderColor = color;
+        neon.style.boxShadow = `0 0 10px ${color}, 0 0 20px ${color}, 0 0 30px ${color}`;
+        neon.style.animationDelay = (i * 0.15) + 's';
+        document.body.appendChild(neon);
+        neon.addEventListener('animationend', () => neon.remove());
+    }
+}
+
+// 전역 클릭 이벤트 초기화
+function initGlobalClickEffects() {
+    document.addEventListener('click', (e) => {
+        createClickEffect(e.clientX, e.clientY);
+    });
+    document.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+            const touch = e.touches[0];
+            createClickEffect(touch.clientX, touch.clientY);
+        }
+    }, { passive: true });
+}
+
 // 효과 렌더링 시스템
 let effectAnimationId = null;
 let particles = [];
@@ -981,17 +1231,50 @@ function showEffectScreen() {
     const data = getGameData();
     const unlockedEffects = getUnlockedEffects();
     const activeEffects = getActiveEffects();
+    const unlockedClickEffects = getUnlockedClickEffects();
+    const activeClickEffects = getActiveClickEffects();
     const completedMissionCount = data.completedMissions.length;
 
     // 통계 업데이트
     document.getElementById('totalPlays').textContent = data.totalPlays;
     document.getElementById('missionComplete').textContent = completedMissionCount;
-    document.getElementById('effectUnlocked').textContent = unlockedEffects.length;
+    document.getElementById('effectUnlocked').textContent = unlockedEffects.length + unlockedClickEffects.length;
 
     const effectList = document.getElementById('effectList');
 
     let html = '';
 
+    // 클릭 효과 섹션
+    html += '<div class="effect-section-title">👆 클릭 효과</div>';
+    clickEffects.forEach(effect => {
+        const unlocked = unlockedClickEffects.some(e => e.id === effect.id);
+        const active = activeClickEffects.includes(effect.id);
+
+        html += `
+            <div class="effect-card ${active ? 'active' : ''} ${!unlocked ? 'locked' : ''}"
+                 onclick="${unlocked ? `onToggleClickEffect('${effect.id}')` : ''}">
+                <div class="effect-preview-icon">
+                    ${effect.preview}
+                </div>
+                <div class="effect-info">
+                    <div class="effect-name">${effect.name}</div>
+                    <div class="effect-desc">${effect.description}</div>
+                    ${unlocked ? `
+                        <div class="effect-toggle ${active ? 'on' : 'off'}">
+                            ${active ? '✓ 활성화됨' : '○ 비활성화'}
+                        </div>
+                    ` : `
+                        <div class="effect-mission">
+                            <div class="effect-mission-title">🔒 잠금됨</div>
+                        </div>
+                    `}
+                </div>
+            </div>
+        `;
+    });
+
+    // 타이머 효과 섹션
+    html += '<div class="effect-section-title">⏱️ 타이머 효과</div>';
     effects.forEach(effect => {
         const unlocked = unlockedEffects.some(e => e.id === effect.id);
         const active = activeEffects.includes(effect.id);
@@ -1025,6 +1308,11 @@ function showEffectScreen() {
 
 function onToggleEffect(effectId) {
     toggleEffect(effectId);
+    showEffectScreen();
+}
+
+function onToggleClickEffect(effectId) {
+    toggleClickEffect(effectId);
     showEffectScreen();
 }
 
@@ -1277,6 +1565,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 초기 히스토리 상태 설정
     history.replaceState({ screen: 'introScreen' }, '', '#introScreen');
+
+    // 전역 클릭 효과 초기화
+    initGlobalClickEffects();
 
     // 데이터 로드 및 초기화
     loadData();
